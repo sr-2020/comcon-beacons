@@ -32,7 +32,7 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
 
     public void onCreate() {
         super.onCreate();
-        queue = Volley.newRequestQueue(this);;
+        queue = Volley.newRequestQueue(this);
 
         Log.d(TAG, "ComConBeaconsApplication::onCreate");
         beaconManager = org.altbeacon.beacon.BeaconManager.getInstanceForApplication(this);
@@ -93,28 +93,6 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
             beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
             beaconManager.addRangeNotifier(rangeNotifier);
         } catch (RemoteException e) {   }
-    }
-
-    private void login(String email, String password) {
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, "http://85.143.222.113/api/v1/login",
-                JsonHelpers.loginPayload(email, password),
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            Log.i(TAG,"Http request succeeded, api_key = " + response.get("api_key"));
-                        } catch (JSONException e) {
-                            Log.e(TAG,"Parsing http response failed: " + e);
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG,"Http request failed: " + error);
-                    }
-                });
-        queue.add(request);
     }
 
     private void sendBeacons(Collection<Beacon> beacons) {

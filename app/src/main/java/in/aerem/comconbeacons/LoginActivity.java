@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -14,19 +15,25 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.RequestFuture;
+import com.android.volley.toolbox.Volley;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.concurrent.ExecutionException;
 
 public class LoginActivity extends AppCompatActivity {
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
+    private static final String TAG = "ComConBeacons";
+
+
+     // Keep track of the login task to ensure we can cancel it if requested.
     private UserLoginTask mAuthTask = null;
+    private RequestQueue mHttpRequestQueue;
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -62,6 +69,8 @@ public class LoginActivity extends AppCompatActivity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+
+        mHttpRequestQueue = Volley.newRequestQueue(this);
     }
 
     private void attemptLogin() {
@@ -129,7 +138,7 @@ public class LoginActivity extends AppCompatActivity {
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    public class UserLoginTask extends AsyncTask<Void, Void, String> {
 
         private final String mEmail;
         private final String mPassword;
@@ -140,38 +149,39 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
+        protected String doInBackground(Void... params) {
+            RequestFuture<JSONObject> future = RequestFuture.newFuture();
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
+                    "http://85.143.222.113/api/v1/login",
+                    JsonHelpers.loginPayload(mEmail, mPassword),
+                    future, future);
+            mHttpRequestQueue.add(request);
 
             try {
-                // Simulate network access.
-                Thread.sleep(2000);
+                JSONObject response = future.get();
+                Log.i(TAG,"Http request succeeded, api_key = " + response.get("api_key"));
+                return (String) response.get("api_key");
             } catch (InterruptedException e) {
-                return false;
+                Log.e(TAG,"InterruptedException: " + e);
+            } catch (ExecutionException e) {
+                Log.e(TAG,"ExecutionException: " + e);
+            } catch (JSONException e) {
+                Log.e(TAG,"Invalid JSON received from server: " + e);
             }
-
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
-
-            // TODO: register the new account here.
-            return true;
+            return null;
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
+        protected void onPostExecute(final String apiKey) {
             mAuthTask = null;
             showProgress(false);
 
-            if (success) {
-                // TODO: Save token and navigate to next activity
-            } else {
+            if (apiKey == null) {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
+            } else {
+                Log.i(TAG,"Successful login");
+                // TODO: Save token and navigate to next activity
             }
         }
 
