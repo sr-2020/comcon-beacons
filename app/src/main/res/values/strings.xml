@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">ComConBeacons</string>
+    <string name="title_activity_login">Вход</string>
+    <!-- Strings related to login -->
+    <string name="prompt_email">e-mail</string>
+    <string name="prompt_password">Пароль</string>
+    <string name="action_sign_in">Вход / регистрация</string>
+    <string name="action_sign_in_short">Вход</string>
+    <string name="error_empty_password">Пароль не должен быть пустым</string>
+    <string name="error_incorrect_password">Неверный пароль</string>
+    <string name="error_field_required">Это поле обязательно к заполнению</string>
 </resources>
