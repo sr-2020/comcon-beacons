@@ -79,16 +79,12 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
     @Override
     public void onBeaconServiceConnect() {
         Log.d(TAG, "onBeaconServiceConnect");
-
-        sendBeacons();
-
         RangeNotifier rangeNotifier = new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 Log.d(TAG, "didRangeBeaconsInRegion called with beacon count:  "+beacons.size());
                 if (beacons.size() > 0) {
-                    Beacon firstBeacon = beacons.iterator().next();
-                    Log.d(TAG, "The first beacon " + firstBeacon.toString() + " is about " + firstBeacon.getDistance() + " meters away.");
+                    sendBeacons(beacons);
                 }
             }
 
@@ -121,9 +117,9 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
         queue.add(request);
     }
 
-    private void sendBeacons() {
+    private void sendBeacons(Collection<Beacon> beacons) {
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, "http://85.143.222.113/api/v1/positions",
-                JsonHelpers.positionsPayload(),
+                JsonHelpers.positionsPayload(beacons),
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {

@@ -23,18 +23,18 @@ public class JsonHelpers {
         return result;
     }
 
-    static JSONObject positionsPayload() {
+    static JSONObject positionsPayload(Collection<Beacon> beacons) {
         JSONObject result = new JSONObject();
         try {
-            JSONObject beaconData = new JSONObject();
-            beaconData.put("ssid", "Unknown");
-            beaconData.put("bssid", "b0:0a:95:9d:00:0a");
-            beaconData.put("level", -50);
-
-            JSONArray beacons = new JSONArray();
-            beacons.put(beaconData);
-
-            result.put("beacons", beacons);
+            JSONArray beaconsJson = new JSONArray();
+            for (Beacon beacon: beacons) {
+                JSONObject beaconJson = new JSONObject();
+                beaconJson.put("ssid", beacon.getId1());
+                beaconJson.put("bssid", beacon.getBluetoothAddress());
+                beaconJson.put("level", beacon.getRssi());
+                beaconsJson.put(beaconJson);
+            }
+            result.put("beacons", beaconsJson);
         } catch (JSONException e) {
             // TODO: get rid of it by using JSONObject constructor
             Log.e(TAG,"JSON creation failed: " + e);
