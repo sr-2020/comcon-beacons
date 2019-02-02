@@ -15,13 +15,10 @@ import org.altbeacon.beacon.*;
 import java.util.Collection;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "ComConBeacons";
-    private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Android M Permission check
