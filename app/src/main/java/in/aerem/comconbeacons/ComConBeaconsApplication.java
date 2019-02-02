@@ -6,12 +6,21 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.RemoteException;
 import android.util.Log;
+import com.android.volley.*;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import org.altbeacon.beacon.*;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.startup.RegionBootstrap;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ComConBeaconsApplication extends Application implements BeaconConsumer {
     private static final String TAG = "ComConBeacons";
@@ -19,9 +28,12 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
     private BeaconManager beaconManager;
     private MainActivity monitoringActivity;
     private boolean haveDetectedBeaconsSinceBoot;
+    private RequestQueue queue;
 
     public void onCreate() {
         super.onCreate();
+        queue = Volley.newRequestQueue(this);;
+
         Log.d(TAG, "ComConBeaconsApplication::onCreate");
         beaconManager = org.altbeacon.beacon.BeaconManager.getInstanceForApplication(this);
 
@@ -67,6 +79,9 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
     @Override
     public void onBeaconServiceConnect() {
         Log.d(TAG, "onBeaconServiceConnect");
+
+        sendBeacons();
+
         RangeNotifier rangeNotifier = new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
@@ -82,5 +97,52 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
             beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
             beaconManager.addRangeNotifier(rangeNotifier);
         } catch (RemoteException e) {   }
+    }
+
+    private void login(String email, String password) {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, "http://85.143.222.113/api/v1/login",
+                JsonHelpers.loginPayload(email, password),
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            Log.i(TAG,"Http request succeeded, api_key = " + response.get("api_key"));
+                        } catch (JSONException e) {
+                            Log.e(TAG,"Parsing http response failed: " + e);
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG,"Http request failed: " + error);
+                    }
+                });
+        queue.add(request);
+    }
+
+    private void sendBeacons() {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, "http://85.143.222.113/api/v1/positions",
+                JsonHelpers.positionsPayload(),
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i(TAG,"Http request succeeded, response = " + response);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG,"Http request failed: " + error);
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put("Authorization", "eDdtdG1aT0haQnkya3BNemRHMGpWcVgxTFRDcEZ1Sm8=");
+                return headers;
+            }
+        };
+        queue.add(request);
     }
 }
