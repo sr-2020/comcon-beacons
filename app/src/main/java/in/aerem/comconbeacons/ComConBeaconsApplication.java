@@ -31,7 +31,7 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
         // 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
         //59 00 02 15 01 12 23 34 45 56 67 78 89 9A AB BC CD DE EF F0 01 02 03 04 C3
         beaconManager.getBeaconParsers().add(new BeaconParser().
-                setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
+                setBeaconLayout("m:0-3=59000215,i:4-19,i:20-21,i:22-23,p:24-24"));
         beaconManager.setDebug(true);
 
         Notification.Builder builder = new Notification.Builder(this);
