@@ -96,7 +96,8 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
     }
 
     private void sendBeacons(Collection<Beacon> beacons) {
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, "http://85.143.222.113/api/v1/positions",
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
+                getString(R.string.backend_url) + "/positions",
                 JsonHelpers.positionsPayload(beacons),
                 new Response.Listener<JSONObject>() {
                     @Override

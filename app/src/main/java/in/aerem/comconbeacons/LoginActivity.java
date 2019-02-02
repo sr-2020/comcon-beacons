@@ -152,7 +152,7 @@ public class LoginActivity extends AppCompatActivity {
         protected String doInBackground(Void... params) {
             RequestFuture<JSONObject> future = RequestFuture.newFuture();
             JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
-                    "http://85.143.222.113/api/v1/login",
+                    getString(R.string.backend_url) + "/login",
                     JsonHelpers.loginPayload(mEmail, mPassword),
                     future, future);
             mHttpRequestQueue.add(request);
