@@ -173,8 +173,7 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(final String apiKey) {
-            mAuthTask = null;
-            showProgress(false);
+            onFinish();
 
             if (apiKey == null) {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
@@ -187,6 +186,10 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected void onCancelled() {
+            onFinish();
+        }
+
+        private void onFinish() {
             mAuthTask = null;
             showProgress(false);
         }
