@@ -159,7 +159,6 @@ public class LoginActivity extends AppCompatActivity {
 
             try {
                 JSONObject response = future.get();
-                Log.i(TAG,"Http request succeeded, api_key = " + response.get("api_key"));
                 return (String) response.get("api_key");
             } catch (InterruptedException e) {
                 Log.e(TAG,"InterruptedException: " + e);
@@ -179,7 +178,7 @@ public class LoginActivity extends AppCompatActivity {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
             } else {
-                Log.i(TAG,"Successful login");
+                Log.i(TAG,"Successful login, token = " + apiKey);
                 // TODO: Save token and navigate to next activity
             }
         }
