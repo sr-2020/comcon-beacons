@@ -2,6 +2,9 @@ package in.aerem.comconbeacons;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -32,7 +35,7 @@ public class LoginActivity extends AppCompatActivity {
 
 
      // Keep track of the login task to ensure we can cancel it if requested.
-    private UserLoginTask mAuthTask = null;
+    private UserTask mAuthTask = null;
     private RequestQueue mHttpRequestQueue;
 
     // UI references.
@@ -41,10 +44,13 @@ public class LoginActivity extends AppCompatActivity {
     private View mProgressView;
     private View mLoginFormView;
 
+    private SharedPreferences mSharedPreferences;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
         // Set up the login form.
         mEmailView = findViewById(R.id.email);
         mPasswordView = findViewById(R.id.password);
@@ -67,49 +73,89 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        Button mEmailRegisterButton = findViewById(R.id.email_register_button);
+        mEmailRegisterButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                attemptRegister();
+            }
+        });
+
+
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
         mHttpRequestQueue = Volley.newRequestQueue(this);
+
+        mSharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        String maybeToken = mSharedPreferences.getString(getString(R.string.token_preference_key), null);
+        if (maybeToken != null) {
+            onSuccessfulLogin(maybeToken);
+        }
+
+    }
+    private void attemptRegister() {
+        if (mAuthTask != null) {
+            return;
+        }
+        LoginFormData loginFormData = getLoginFormData();
+        if (loginFormData != null) {
+            // Show a progress spinner, and kick off a background task to
+            // perform the user login attempt.
+            showProgress(true);
+            mAuthTask = new UserRegisterTask(loginFormData.email, loginFormData.password);
+            mAuthTask.execute((Void) null);
+        }
     }
 
     private void attemptLogin() {
         if (mAuthTask != null) {
             return;
         }
+        LoginFormData loginFormData = getLoginFormData();
+        if (loginFormData != null) {
+            // Show a progress spinner, and kick off a background task to
+            // perform the user login attempt.
+            showProgress(true);
+            mAuthTask = new UserLoginTask(loginFormData.email, loginFormData.password);
+            mAuthTask.execute((Void) null);
+        }
+    }
 
+    private class LoginFormData {
+        public String email;
+        public String password;
+
+        public  LoginFormData(String email, String password) {
+            this.email = email;
+            this.password = password;
+        }
+    }
+
+    private LoginFormData getLoginFormData() {
         mEmailView.setError(null);
         mPasswordView.setError(null);
 
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
 
-        boolean cancel = false;
         View focusView = null;
 
         // Check for a valid password, if the user entered one.
         if (TextUtils.isEmpty(password)) {
             mPasswordView.setError(getString(R.string.error_empty_password));
-            focusView = mPasswordView;
-            cancel = true;
+            mPasswordView.requestFocus();
+            return null;
         }
 
         // Check for a valid email address.
         if (TextUtils.isEmpty(email)) {
             mEmailView.setError(getString(R.string.error_field_required));
-            focusView = mEmailView;
-            cancel = true;
+            mEmailView.requestFocus();
+            return null;
         }
 
-        if (cancel) {
-            focusView.requestFocus();
-        } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
-        }
+        return new LoginFormData(email, password);
     }
 
     private void showProgress(final boolean show) {
@@ -134,25 +180,30 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, String> {
+    protected void onSuccessfulLogin(String token) {
+        Log.i(TAG,"Successful login, token = " + token);
+        // TODO: Save token and navigate to next activity
+        SharedPreferences.Editor editor = mSharedPreferences.edit();
+        editor.putString(getString(R.string.token_preference_key), token);
+        editor.commit();
 
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
+    public abstract class UserTask extends AsyncTask<Void, Void, String> {
         private final String mEmail;
         private final String mPassword;
 
-        UserLoginTask(String email, String password) {
+        UserTask(String email, String password) {
             mEmail = email;
             mPassword = password;
         }
-
         @Override
-        protected String doInBackground(Void... params) {
+        protected String doInBackground(Void... voids) {
             RequestFuture<JSONObject> future = RequestFuture.newFuture();
             JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
-                    getString(R.string.backend_url) + "/login",
+                    getUrl(),
                     JsonHelpers.loginPayload(mEmail, mPassword),
                     future, future);
             mHttpRequestQueue.add(request);
@@ -175,11 +226,9 @@ public class LoginActivity extends AppCompatActivity {
             onFinish();
 
             if (apiKey == null) {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+                onFailure();
             } else {
-                Log.i(TAG,"Successful login, token = " + apiKey);
-                // TODO: Save token and navigate to next activity
+                onSuccessfulLogin(apiKey);
             }
         }
 
@@ -191,6 +240,43 @@ public class LoginActivity extends AppCompatActivity {
         private void onFinish() {
             mAuthTask = null;
             showProgress(false);
+        }
+
+        protected abstract String getUrl();
+        protected abstract void onFailure();
+    }
+
+    public class UserLoginTask extends UserTask {
+        public  UserLoginTask(String email, String password) {
+            super(email, password);
+        }
+
+        @Override
+        protected String getUrl() {
+            return getString(R.string.backend_url) + "/login";
+        }
+
+        @Override
+        protected void onFailure() {
+            mPasswordView.setError(getString(R.string.error_incorrect_password));
+            mPasswordView.requestFocus();
+        }
+    }
+
+    public class UserRegisterTask extends UserTask {
+        public  UserRegisterTask(String email, String password) {
+            super(email, password);
+        }
+
+        @Override
+        protected String getUrl() {
+            return getString(R.string.backend_url) + "/register";
+        }
+
+        @Override
+        protected void onFailure() {
+            mEmailView.setError(getString(R.string.error_user_already_exist));
+            mEmailView.requestFocus();
         }
     }
 }

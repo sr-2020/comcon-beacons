@@ -4,11 +4,14 @@
     <!-- Strings related to login -->
     <string name="prompt_email">e-mail</string>
     <string name="prompt_password">Пароль</string>
-    <string name="action_sign_in">Вход / регистрация</string>
+    <string name="action_register">Регистрация</string>
+    <string name="action_sign_in">Вход</string>
     <string name="action_sign_in_short">Вход</string>
     <string name="error_empty_password">Пароль не должен быть пустым</string>
     <string name="error_incorrect_password">Неверный пароль</string>
+    <string name="error_user_already_exist">Такой пользователь уже существует</string>
     <string name="error_field_required">Это поле обязательно к заполнению</string>
 
     <string name="backend_url">http://85.143.222.113/api/v1</string>
+    <string name="token_preference_key">backend_token</string>
 </resources>
