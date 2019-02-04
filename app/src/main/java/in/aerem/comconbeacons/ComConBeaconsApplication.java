@@ -6,13 +6,17 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.RemoteException;
 import android.util.Log;
-import com.android.volley.*;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import org.altbeacon.beacon.*;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.json.JSONObject;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,11 +27,16 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
     private BeaconManager beaconManager;
     private MainActivity monitoringActivity;
     private boolean haveDetectedBeaconsSinceBoot;
-    private RequestQueue queue;
+    private PositionsWebService mService;
 
     public void onCreate() {
         super.onCreate();
-        queue = Volley.newRequestQueue(this);
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(getString(R.string.backend_url))
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        mService = retrofit.create(PositionsWebService.class);
 
         Log.d(TAG, "ComConBeaconsApplication::onCreate");
         beaconManager = org.altbeacon.beacon.BeaconManager.getInstanceForApplication(this);
@@ -91,28 +100,22 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
     }
 
     private void sendBeacons(Collection<Beacon> beacons) {
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
-                getString(R.string.backend_url) + "/positions",
-                JsonHelpers.positionsPayload(beacons),
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.i(TAG,"Http request succeeded, response = " + response);
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG,"Http request failed: " + error);
-                    }
-                }) {
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                HashMap<String, String> headers = new HashMap<String, String>();
-                headers.put("Authorization", "eDdtdG1aT0haQnkya3BNemRHMGpWcVgxTFRDcEZ1Sm8=");
-                return headers;
-            }
-        };
-        queue.add(request);
+        PositionsRequest req = new PositionsRequest(new ArrayList<>());
+        for (Beacon b : beacons) {
+            req.beacons.add(new BeaconData(b.getId1().toString(), b.getBluetoothAddress(), b.getRssi()));
+        }
+
+        Call<PositionsResponse> c = mService.positions("eDdtdG1aT0haQnkya3BNemRHMGpWcVgxTFRDcEZ1Sm8=", req);
+        c.enqueue(new Callback<PositionsResponse>() {
+                      @Override
+                      public void onResponse(Call<PositionsResponse> call, Response<PositionsResponse> response) {
+                          Log.i(TAG, "Http request succeeded, response = " + response.body());
+                      }
+
+                      @Override
+                      public void onFailure(Call<PositionsResponse> call, Throwable t) {
+                          Log.e(TAG, "Http request failed: " + t);
+                      }
+                  });
     }
 }

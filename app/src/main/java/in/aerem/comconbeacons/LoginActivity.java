@@ -18,14 +18,14 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.RequestFuture;
-import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 public class LoginActivity extends AppCompatActivity {
@@ -34,7 +34,6 @@ public class LoginActivity extends AppCompatActivity {
 
      // Keep track of the login task to ensure we can cancel it if requested.
     private UserTask mAuthTask = null;
-    private RequestQueue mHttpRequestQueue;
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -82,8 +81,6 @@ public class LoginActivity extends AppCompatActivity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
-
-        mHttpRequestQueue = Volley.newRequestQueue(this);
 
         mSharedPreferences = getPreferences(Context.MODE_PRIVATE);
         String maybeToken = mSharedPreferences.getString(getString(R.string.token_preference_key), null);
@@ -180,7 +177,6 @@ public class LoginActivity extends AppCompatActivity {
 
     protected void onSuccessfulLogin(String token) {
         Log.i(TAG,"Successful login, token = " + token);
-        // TODO: Save token and navigate to next activity
         SharedPreferences.Editor editor = mSharedPreferences.edit();
         editor.putString(getString(R.string.token_preference_key), token);
         editor.commit();
@@ -190,31 +186,30 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public abstract class UserTask extends AsyncTask<Void, Void, String> {
-        private final String mEmail;
-        private final String mPassword;
+        protected final LoginRequest mLoginRequest;
+        PositionsWebService mService;
 
         UserTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
+            mLoginRequest = new LoginRequest(email, password);
+
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(getString(R.string.backend_url))
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+
+            mService = retrofit.create(PositionsWebService.class);
         }
         @Override
         protected String doInBackground(Void... voids) {
-            RequestFuture<JSONObject> future = RequestFuture.newFuture();
-            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
-                    getUrl(),
-                    JsonHelpers.loginPayload(mEmail, mPassword),
-                    future, future);
-            mHttpRequestQueue.add(request);
-
+            Call<LoginResponse> c = call();
             try {
-                JSONObject response = future.get();
-                return (String) response.get("api_key");
-            } catch (InterruptedException e) {
-                Log.e(TAG,"InterruptedException: " + e);
-            } catch (ExecutionException e) {
-                Log.e(TAG,"ExecutionException: " + e);
-            } catch (JSONException e) {
-                Log.e(TAG,"Invalid JSON received from server: " + e);
+                Response<LoginResponse> response = c.execute();
+                if (response.isSuccessful()) {
+                    return response.body().api_key;
+                }
+                Log.e(TAG,"Unsuccessful response: " + response.errorBody());
+            } catch (IOException e) {
+                Log.e(TAG,"IOException: " + e);
             }
             return null;
         }
@@ -240,7 +235,7 @@ public class LoginActivity extends AppCompatActivity {
             showProgress(false);
         }
 
-        protected abstract String getUrl();
+        protected abstract  Call<LoginResponse> call();
         protected abstract void onFailure();
     }
 
@@ -250,8 +245,8 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         @Override
-        protected String getUrl() {
-            return getString(R.string.backend_url) + "/login";
+        protected Call<LoginResponse> call() {
+            return mService.login(mLoginRequest);
         }
 
         @Override
@@ -267,8 +262,8 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         @Override
-        protected String getUrl() {
-            return getString(R.string.backend_url) + "/register";
+        protected Call<LoginResponse> call() {
+            return mService.register(mLoginRequest);
         }
 
         @Override
