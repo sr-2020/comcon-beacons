@@ -15,4 +15,5 @@
     <string name="backend_url">http://85.143.222.113/api/v1/</string>
     <string name="token_preference_key">backend_token</string>
     <string name="notification_content_title">Scanning for Beacons</string>
+    <string name="action_favorite">Выход</string>
 </resources>

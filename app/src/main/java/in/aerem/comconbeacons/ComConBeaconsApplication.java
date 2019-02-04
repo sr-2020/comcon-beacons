@@ -3,8 +3,10 @@ package in.aerem.comconbeacons;
 import android.app.*;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import org.altbeacon.beacon.*;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
@@ -31,6 +33,7 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
 
     public void onCreate() {
         super.onCreate();
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(getString(R.string.backend_url))
                 .addConverterFactory(GsonConverterFactory.create())
@@ -117,5 +120,9 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
                           Log.e(TAG, "Http request failed: " + t);
                       }
                   });
+    }
+
+    public SharedPreferences getGlobalSharedPreferences() {
+        return PreferenceManager.getDefaultSharedPreferences(this);
     }
 }

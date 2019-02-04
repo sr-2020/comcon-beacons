@@ -18,15 +18,12 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import org.json.JSONException;
-import org.json.JSONObject;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "ComConBeacons";
@@ -82,7 +79,7 @@ public class LoginActivity extends AppCompatActivity {
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        mSharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        mSharedPreferences = ((ComConBeaconsApplication) getApplication()).getGlobalSharedPreferences();
         String maybeToken = mSharedPreferences.getString(getString(R.string.token_preference_key), null);
         if (maybeToken != null) {
             onSuccessfulLogin(maybeToken);
