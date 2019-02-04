@@ -52,7 +52,7 @@ public class ComConBeaconsApplication extends Application implements BeaconConsu
 
         Notification.Builder builder = new Notification.Builder(this);
         // builder.setSmallIcon(R.drawable.ic_launcher);
-        builder.setContentTitle("Scanning for Beacons");
+        builder.setContentTitle(getString(R.string.notification_content_title));
         Intent intent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
