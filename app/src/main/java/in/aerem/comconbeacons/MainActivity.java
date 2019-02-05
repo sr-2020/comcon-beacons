@@ -50,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
 
         mService = retrofit.create(PositionsWebService.class);
 
+        // See RecyclerView guide for details if needed
+        // https://developer.android.com/guide/topics/ui/layout/recyclerview
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
