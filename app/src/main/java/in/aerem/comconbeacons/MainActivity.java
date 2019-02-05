@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        MutableLiveData<List<String>> liveData = new MutableLiveData<>();
+        MutableLiveData<List<UserListItem>> liveData = new MutableLiveData<>();
         UsersPositionsAdapter adapter = new UsersPositionsAdapter();
         liveData.observe(this, data -> adapter.setData(data));
 
@@ -67,9 +67,9 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call<List<UsersResponse>> call, Response<List<UsersResponse>> response) {
                         Log.i(TAG, "Http request succeeded, response = " + response.body());
-                        List<String> lines = new ArrayList<>();
+                        List<UserListItem> lines = new ArrayList<>();
                         for (UsersResponse u : response.body()) {
-                            lines.add(u.email + " --> " + bssidOnNone(u.beacon) + " @" + u.updated_at);
+                            lines.add(new UserListItem(u));
                         }
                         liveData.postValue(lines);
                     }
