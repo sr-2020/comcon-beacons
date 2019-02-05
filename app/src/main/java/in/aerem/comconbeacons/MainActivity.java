@@ -60,6 +60,12 @@ public class MainActivity extends AppCompatActivity {
         UsersPositionsAdapter adapter = new UsersPositionsAdapter();
         liveData.observe(this, data -> adapter.setData(data));
 
+        // TODO: Consider using better approach when LiveData
+        // (https://developer.android.com/topic/libraries/architecture/livedata)
+        // is coming from ViewModel class
+        // (https://developer.android.com/topic/libraries/architecture/viewmodel)
+        // which in turn takes it from Repository. See Android Jetpack architecture guide for details:
+        // https://developer.android.com/jetpack/docs/guide
         mListUpdateRunnable = new Runnable() {
             @Override
             public void run() {
