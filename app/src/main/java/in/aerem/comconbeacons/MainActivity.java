@@ -46,6 +46,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        this.startService(new Intent(this, BeaconsScanner.class));
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar, menu);
         return super.onCreateOptionsMenu(menu);
@@ -58,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_exit) {
             SharedPreferences preferences = ((ComConBeaconsApplication) getApplication()).getGlobalSharedPreferences();
             preferences.edit().remove(getString(R.string.token_preference_key)).commit();
+            this.stopService(new Intent(this, BeaconsScanner.class));
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
         }
