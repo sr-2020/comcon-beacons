@@ -24,6 +24,7 @@ public class BeaconsScanner extends Service implements BeaconConsumer {
     private BackgroundPowerSaver mBackgroundPowerSaver;
     private BeaconManager mBeaconManager;
     private PositionsWebService mService;
+    private String mSecurityToken;
 
     @Override
     public void onCreate() {
@@ -70,6 +71,9 @@ public class BeaconsScanner extends Service implements BeaconConsumer {
         mBeaconManager.bind(this);
 
         mBackgroundPowerSaver = new BackgroundPowerSaver(this);
+
+        mSecurityToken = ((ComConBeaconsApplication) getApplication()).getGlobalSharedPreferences()
+                .getString(getString(R.string.token_preference_key), null);
     }
 
     @Override
@@ -110,7 +114,7 @@ public class BeaconsScanner extends Service implements BeaconConsumer {
             req.beacons.add(new BeaconData(b.getId1().toString(), b.getBluetoothAddress(), b.getRssi()));
         }
 
-        Call<PositionsResponse> c = mService.positions("eDdtdG1aT0haQnkya3BNemRHMGpWcVgxTFRDcEZ1Sm8=", req);
+        Call<PositionsResponse> c = mService.positions(mSecurityToken, req);
         c.enqueue(new Callback<PositionsResponse>() {
             @Override
             public void onResponse(Call<PositionsResponse> call, Response<PositionsResponse> response) {
