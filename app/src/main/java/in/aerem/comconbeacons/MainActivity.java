@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         // (https://developer.android.com/topic/libraries/architecture/viewmodel)
         // which in turn takes it from Repository. See Android Jetpack architecture guide for details:
         // https://developer.android.com/jetpack/docs/guide
+        // Also see concrete example: https://medium.com/@guendouz/room-livedata-and-recyclerview-d8e96fb31dfe
         mListUpdateRunnable = new Runnable() {
             @Override
             public void run() {
