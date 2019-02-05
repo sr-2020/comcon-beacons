@@ -2,8 +2,11 @@ package in.aerem.comconbeacons;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+
+import java.util.List;
 
 public interface PositionsWebService {
     @POST("login")
@@ -14,5 +17,8 @@ public interface PositionsWebService {
 
     @POST("positions")
     Call<PositionsResponse> positions(@Header("Authorization") String authorization, @Body PositionsRequest request);
+
+    @GET("users")
+    Call<List<UsersResponse>> users();
 }
 

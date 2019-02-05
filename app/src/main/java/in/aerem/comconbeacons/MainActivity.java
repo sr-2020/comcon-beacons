@@ -2,24 +2,33 @@ package in.aerem.comconbeacons;
 
 import android.Manifest;
 import android.arch.lifecycle.MutableLiveData;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "ComConBeacons";
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
+    private PositionsWebService mService;
+    private Handler mHandler = new Handler();
+    private Runnable mListUpdateRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +42,14 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(getString(R.string.backend_url))
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        mService = retrofit.create(PositionsWebService.class);
+
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -40,15 +57,48 @@ public class MainActivity extends AppCompatActivity {
         MutableLiveData<List<String>> liveData = new MutableLiveData<>();
         UsersPositionsAdapter adapter = new UsersPositionsAdapter();
         liveData.observe(this, data -> adapter.setData(data));
-        liveData.postValue(Arrays.asList("Foo", "Bar", "Quz"));
 
+        mListUpdateRunnable = new Runnable() {
+            @Override
+            public void run() {
+                mService.users().enqueue(new Callback<List<UsersResponse>>() {
+                    @Override
+                    public void onResponse(Call<List<UsersResponse>> call, Response<List<UsersResponse>> response) {
+                        Log.i(TAG, "Http request succeeded, response = " + response.body());
+                        List<String> lines = new ArrayList<>();
+                        for (UsersResponse u : response.body()) {
+                            lines.add(u.email + " --> " + bssidOnNone(u.beacon) + " @" + u.updated_at);
+                        }
+                        liveData.postValue(lines);
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<UsersResponse>> call, Throwable t) {
+                        Log.e(TAG, "Http request failed: " + t);
+                    }
+                });
+                mHandler.postDelayed(this, 10000);
+            }
+        };
         recyclerView.setAdapter(adapter);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mHandler.removeCallbacks(mListUpdateRunnable);
+    }
+
+    private String bssidOnNone(UsersResponse.Beacon b) {
+        if (b == null) return "None";
+        return b.bssid;
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         this.startService(new Intent(this, BeaconsScanner.class));
+        mListUpdateRunnable.run();
     }
 
     @Override
