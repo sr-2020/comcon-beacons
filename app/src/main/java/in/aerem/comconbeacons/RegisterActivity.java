@@ -25,15 +25,17 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.io.IOException;
 
-public class LoginActivity extends AppCompatActivity {
+public class RegisterActivity extends AppCompatActivity {
     private static final String TAG = "ComConBeacons";
 
-     // Keep track of the login task to ensure we can cancel it if requested.
-    private UserLoginTask mAuthTask = null;
+    // Keep track of the login task to ensure we can cancel it if requested.
+    private UserRegisterTask mRegisterTask = null;
 
     // UI references.
     private AutoCompleteTextView mEmailView;
+    private EditText mNameView;
     private EditText mPasswordView;
+    private EditText mPasswordRepeatView;
     private View mProgressView;
     private View mLoginFormView;
 
@@ -42,94 +44,74 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_register);
 
         // Set up the login form.
         mEmailView = findViewById(R.id.email);
+        mNameView = findViewById(R.id.name);
         mPasswordView = findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        mPasswordRepeatView = findViewById(R.id.password_repeat);
+        mPasswordRepeatView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
+                    attemptRegister();
                     return true;
                 }
                 return false;
             }
         });
 
-        Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
-            }
-        });
-
-        Button mEmailRegisterButton = findViewById(R.id.email_register_button);
-        mEmailRegisterButton.setOnClickListener(new OnClickListener() {
+        Button registerButton = findViewById(R.id.email_register_button);
+        registerButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 attemptRegister();
             }
         });
 
-
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
         mSharedPreferences = ((ComConBeaconsApplication) getApplication()).getGlobalSharedPreferences();
-        String maybeToken = mSharedPreferences.getString(getString(R.string.token_preference_key), null);
-        if (maybeToken != null) {
-            onSuccessfulLogin(maybeToken);
-        }
-
     }
+
     private void attemptRegister() {
-        if (mAuthTask != null) {
+        if (mRegisterTask != null) {
             return;
         }
-        Intent intent = new Intent(this, RegisterActivity.class);
-        startActivity(intent);
-    }
-
-    private void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
-        LoginFormData loginFormData = getLoginFormData();
-        if (loginFormData != null) {
+        RegisterFormData formData = getRegisterFormData();
+        if (formData != null) {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(loginFormData.email, loginFormData.password);
-            mAuthTask.execute((Void) null);
+            mRegisterTask = new UserRegisterTask(formData);
+            mRegisterTask.execute((Void) null);
         }
     }
 
-    private class LoginFormData {
+    private class RegisterFormData {
         public String email;
+        public String name;
         public String password;
 
-        public  LoginFormData(String email, String password) {
+        public  RegisterFormData(String email, String name, String password) {
             this.email = email;
+            this.name = name;
             this.password = password;
         }
     }
 
-    private LoginFormData getLoginFormData() {
+    private RegisterFormData getRegisterFormData() {
         mEmailView.setError(null);
+        mNameView.setError(null);
         mPasswordView.setError(null);
+        mPasswordRepeatView.setError(null);
 
         String email = mEmailView.getText().toString();
+        String name = mNameView.getText().toString();
         String password = mPasswordView.getText().toString();
-
-        // Check for a valid password, if the user entered one.
-        if (TextUtils.isEmpty(password)) {
-            mPasswordView.setError(getString(R.string.error_empty_password));
-            mPasswordView.requestFocus();
-            return null;
-        }
+        String passwordRepeat = mPasswordRepeatView.getText().toString();
 
         // Check for a valid email address.
         if (TextUtils.isEmpty(email)) {
@@ -138,7 +120,35 @@ public class LoginActivity extends AppCompatActivity {
             return null;
         }
 
-        return new LoginFormData(email, password);
+        // Check for a valid email address.
+        if (TextUtils.isEmpty(name)) {
+            mNameView.setError(getString(R.string.error_field_required));
+            mNameView.requestFocus();
+            return null;
+        }
+
+        // Check for a valid password, if the user entered one.
+        if (TextUtils.isEmpty(password)) {
+            mPasswordView.setError(getString(R.string.error_empty_password));
+            mPasswordView.requestFocus();
+            return null;
+        }
+
+        // Check for a valid password, if the user entered one.
+        if (TextUtils.isEmpty(passwordRepeat)) {
+            mPasswordRepeatView.setError(getString(R.string.error_empty_password));
+            mPasswordRepeatView.requestFocus();
+            return null;
+        }
+
+        // Check for a valid password, if the user entered one.
+        if (!TextUtils.equals(password, passwordRepeat)) {
+            mPasswordRepeatView.setError(getString(R.string.error_password_not_repeated));
+            mPasswordRepeatView.requestFocus();
+            return null;
+        }
+
+        return new RegisterFormData(email, name, password);
     }
 
     private void showProgress(final boolean show) {
@@ -163,8 +173,8 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    protected void onSuccessfulLogin(String token) {
-        Log.i(TAG,"Successful login, token = " + token);
+    protected void onSuccessfulRegister(String token) {
+        Log.i(TAG,"Successful registration, token = " + token);
         SharedPreferences.Editor editor = mSharedPreferences.edit();
         editor.putString(getString(R.string.token_preference_key), token);
         editor.commit();
@@ -173,12 +183,12 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public class UserLoginTask extends AsyncTask<Void, Void, String> {
-        protected final LoginRequest mLoginRequest;
+    private class UserRegisterTask extends AsyncTask<Void, Void, String> {
+        protected final RegisterRequest mRegisterRequest;
         PositionsWebService mService;
 
-        UserLoginTask(String email, String password) {
-            mLoginRequest = new LoginRequest(email, password);
+        UserRegisterTask(RegisterFormData mFormData) {
+            mRegisterRequest = new RegisterRequest(mFormData.email, mFormData.name, mFormData.password);
 
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(getString(R.string.backend_url))
@@ -189,7 +199,7 @@ public class LoginActivity extends AppCompatActivity {
         }
         @Override
         protected String doInBackground(Void... voids) {
-            Call<LoginResponse> c = mService.login(mLoginRequest);
+            Call<LoginResponse> c = mService.register(mRegisterRequest);
             try {
                 Response<LoginResponse> response = c.execute();
                 if (response.isSuccessful()) {
@@ -207,10 +217,10 @@ public class LoginActivity extends AppCompatActivity {
             onFinish();
 
             if (apiKey == null) {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+                mEmailView.setError(getString(R.string.error_user_already_exist));
+                mEmailView.requestFocus();
             } else {
-                onSuccessfulLogin(apiKey);
+                onSuccessfulRegister(apiKey);
             }
         }
 
@@ -220,7 +230,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         private void onFinish() {
-            mAuthTask = null;
+            mRegisterTask = null;
             showProgress(false);
         }
     }

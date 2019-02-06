@@ -14,7 +14,7 @@ public interface PositionsWebService {
     Call<LoginResponse> login(@Body LoginRequest request);
 
     @POST("register")
-    Call<LoginResponse> register(@Body LoginRequest request);
+    Call<LoginResponse> register(@Body RegisterRequest request);
 
     @POST("positions")
     Call<PositionsResponse> positions(@Header("Authorization") String authorization, @Body PositionsRequest request);

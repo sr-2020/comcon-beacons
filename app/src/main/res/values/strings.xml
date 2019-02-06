@@ -3,11 +3,14 @@
     <string name="title_activity_login">КомКон-Навигатор</string>
     <!-- Strings related to login -->
     <string name="prompt_email">e-mail</string>
+    <string name="prompt_name">Имя</string>
     <string name="prompt_password">Пароль</string>
+    <string name="prompt_password_repeat">Пароль (еще раз)</string>
     <string name="action_register">Регистрация</string>
     <string name="action_sign_in">Вход</string>
     <string name="action_sign_in_short">Вход</string>
     <string name="error_empty_password">Пароль не должен быть пустым</string>
+    <string name="error_password_not_repeated">Пароли не совпадают</string>
     <string name="error_incorrect_password">Неверный пароль</string>
     <string name="error_user_already_exist">Такой пользователь уже существует</string>
     <string name="error_field_required">Это поле обязательно к заполнению</string>
@@ -17,3 +20,4 @@
     <string name="notification_content_title">Scanning for Beacons</string>
     <string name="action_favorite">Выход</string>
 </resources>
+
