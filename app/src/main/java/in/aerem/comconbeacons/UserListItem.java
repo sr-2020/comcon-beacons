@@ -22,7 +22,7 @@ public class UserListItem {
     }
 
     public UserListItem(UsersResponse r) {
-        username = r.email;
+        username = valueOr(r.name, r.email);
         if (r.beacon == null) {
             location = "None";
         } else {
