@@ -15,9 +15,19 @@ public class UserListItem {
     public String location;
     public String time;
 
+    static private String valueOr(String value, String defaultValue) {
+        if (value == null || value.isEmpty())
+            return defaultValue;
+        return value;
+    }
+
     public UserListItem(UsersResponse r) {
         username = r.email;
-        location = r.beacon == null ? "None" : r.beacon.bssid;
+        if (r.beacon == null) {
+            location = "None";
+        } else {
+            location = valueOr(r.beacon.label, r.beacon.bssid);
+        }
         time = humanReadableDateInfo(r.updated_at);
     }
 

@@ -5,6 +5,7 @@ public class UsersResponse {
         public int id;
         public String ssid;
         public String bssid;
+        public String label;
     }
 
     public int id;
