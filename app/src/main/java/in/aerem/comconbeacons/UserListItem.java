@@ -1,5 +1,6 @@
 package in.aerem.comconbeacons;
 
+import in.aerem.comconbeacons.models.UsersResponse;
 import org.ocpsoft.prettytime.PrettyTime;
 
 import java.text.ParseException;
@@ -22,13 +23,13 @@ public class UserListItem {
     }
 
     public UserListItem(UsersResponse r) {
-        username = valueOr(r.name, r.email);
-        if (r.beacon == null) {
+        username = valueOr(r.getName(), r.getEmail());
+        if (r.getBeacon() == null) {
             location = "None";
         } else {
-            location = valueOr(r.beacon.label, r.beacon.bssid);
+            location = valueOr(r.getBeacon().getLabel(), r.getBeacon().getBssid());
         }
-        time = humanReadableDateInfo(r.updated_at);
+        time = humanReadableDateInfo(r.getUpdated_at());
     }
 
     private static String humanReadableDateInfo(String rawDate) {

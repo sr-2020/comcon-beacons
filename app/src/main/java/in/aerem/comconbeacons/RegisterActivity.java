@@ -2,7 +2,6 @@ package in.aerem.comconbeacons;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -18,6 +17,8 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import in.aerem.comconbeacons.models.LoginResponse;
+import in.aerem.comconbeacons.models.RegisterRequest;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -203,7 +204,7 @@ public class RegisterActivity extends AppCompatActivity {
             try {
                 Response<LoginResponse> response = c.execute();
                 if (response.isSuccessful()) {
-                    return response.body().api_key;
+                    return response.body().getApi_key();
                 }
                 Log.e(TAG,"Unsuccessful response: " + response.errorBody());
             } catch (IOException e) {

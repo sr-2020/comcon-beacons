@@ -14,6 +14,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import in.aerem.comconbeacons.models.UsersResponse;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -100,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String bssidOnNone(UsersResponse.Beacon b) {
         if (b == null) return "None";
-        return b.bssid;
+        return b.getBssid();
     }
 
     @Override

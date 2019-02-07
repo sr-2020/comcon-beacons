@@ -3,11 +3,13 @@ package in.aerem.comconbeacons;
 import android.app.*;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
+import in.aerem.comconbeacons.models.BeaconData;
+import in.aerem.comconbeacons.models.PositionsRequest;
+import in.aerem.comconbeacons.models.PositionsResponse;
 import org.altbeacon.beacon.*;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import retrofit2.Call;
@@ -119,7 +121,7 @@ public class BeaconsScanner extends Service implements BeaconConsumer {
     private void sendBeacons(Collection<Beacon> beacons) {
         PositionsRequest req = new PositionsRequest(new ArrayList<>());
         for (Beacon b : beacons) {
-            req.beacons.add(new BeaconData(b.getId1().toString(), b.getBluetoothAddress(), b.getRssi()));
+            req.getBeacons().add(new BeaconData(b.getId1().toString(), b.getBluetoothAddress(), b.getRssi()));
         }
 
         Call<PositionsResponse> c = mService.positions(mSecurityToken, req);

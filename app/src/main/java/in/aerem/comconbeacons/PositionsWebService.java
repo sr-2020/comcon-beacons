@@ -1,5 +1,6 @@
 package in.aerem.comconbeacons;
 
+import in.aerem.comconbeacons.models.*;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
