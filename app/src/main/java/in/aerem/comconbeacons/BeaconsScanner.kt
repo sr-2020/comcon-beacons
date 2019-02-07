@@ -19,6 +19,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 import java.util.ArrayList
+import android.app.PendingIntent
+
+
 
 class BeaconsScanner : Service(), BeaconConsumer {
     private val TAG = "ComConBeacons"
@@ -52,14 +55,15 @@ class BeaconsScanner : Service(), BeaconConsumer {
 
         // mBeaconManager.setDebug(true);
 
-        val builder = Notification.Builder(this)
-        // builder.setSmallIcon(R.drawable.ic_launcher);
-        builder.setContentTitle(getString(R.string.notification_content_title))
         val intent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
-        )
-        builder.setContentIntent(pendingIntent)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        val builder = Notification.Builder(this)
+            .setSmallIcon(R.drawable.abc_ic_star_black_48dp)
+            .setContentTitle(getString(R.string.notification_content_title))
+            .setContentIntent(pendingIntent)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "My Notification Channel ID",
