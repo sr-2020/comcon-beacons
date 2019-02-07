@@ -27,9 +27,9 @@ public class UsersPositionsAdapter extends RecyclerView.Adapter<UsersPositionsAd
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         UserListItem u = mDataset.get(position);
-        holder.mUsernameView.setText(u.username);
-        holder.mLocationView.setText(u.location);
-        holder.mTimeView.setText(u.time);
+        holder.mUsernameView.setText(u.getUsername());
+        holder.mLocationView.setText(u.getLocation());
+        holder.mTimeView.setText(u.getTime());
     }
 
     @Override
