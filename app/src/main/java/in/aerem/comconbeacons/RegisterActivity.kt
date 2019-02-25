@@ -51,7 +51,7 @@ class RegisterActivity : AppCompatActivity() {
         mNameView = findViewById(R.id.name)
         mPasswordView = findViewById(R.id.password)
         mPasswordRepeatView = findViewById(R.id.password_repeat)
-        mPasswordRepeatView.setOnEditorActionListener(TextView.OnEditorActionListener { textView, id, keyEvent ->
+        mPasswordRepeatView.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
             if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
                 attemptRegister()
                 return@OnEditorActionListener true
