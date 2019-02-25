@@ -79,7 +79,7 @@ class MainActivity : AppCompatActivity() {
                         for (u in response.body()!!) {
                             lines.add(UserListItem(u))
                         }
-                        liveData.postValue(lines)
+                        liveData.postValue(lines.sortedBy { item -> item.username })
                     }
 
                     override fun onFailure(call: Call<List<UsersResponse>>, t: Throwable) {
