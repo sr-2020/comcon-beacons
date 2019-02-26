@@ -77,7 +77,10 @@ class MainActivity : AppCompatActivity() {
                         Log.i(TAG, "Http request succeeded, response = " + response.body())
                         val lines = ArrayList<UserListItem>()
                         for (u in response.body()!!) {
-                            lines.add(UserListItem(u))
+                            // Hack to filter loadtesting accounts
+                            if (!u.email.contains("@grr.la")) {
+                                lines.add(UserListItem(u))
+                            }
                         }
                         liveData.postValue(lines.sortedBy { item -> item.username })
                     }
