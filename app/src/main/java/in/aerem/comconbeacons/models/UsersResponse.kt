@@ -7,7 +7,8 @@ class UsersResponse (
     var name: String?,
     var email: String,
     var updated_at: String,
-    var beacon: Beacon?
+    var beacon: Beacon?,
+    var status: String
 ) {
 
     class Beacon(
