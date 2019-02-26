@@ -16,7 +16,14 @@ import android.view.Menu
 import android.view.MenuItem
 import `in`.aerem.comconbeacons.models.UsersResponse
 import android.annotation.SuppressLint
+import android.app.SearchManager
 import android.arch.lifecycle.Observer
+import android.content.Context
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.SearchView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -32,9 +39,19 @@ class MainActivity : AppCompatActivity() {
     private val mHandler = Handler()
     private lateinit var mListUpdateRunnable: Runnable
 
+    private var mFilterString = ""
+    private val mLiveData = MutableLiveData<List<UserListItem>>()
+    private val mFilteredLiveData = MutableLiveData<List<UserListItem>>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Verify the action and get the query
+        if (Intent.ACTION_SEARCH == intent.action) {
+            intent.getStringExtra(SearchManager.QUERY)?.also { query -> onSearchQuery(query) }
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Android M Permission check
             if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -59,9 +76,9 @@ class MainActivity : AppCompatActivity() {
         recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        val liveData = MutableLiveData<List<UserListItem>>()
         val adapter = UsersPositionsAdapter()
-        liveData.observe(this, Observer { data: List<UserListItem>? -> if (data != null) adapter.setData(data) })
+        mLiveData.observe(this, Observer { data: List<UserListItem>? -> if (data != null) mFilteredLiveData.postValue(filteredResults(data)) })
+        mFilteredLiveData.observe(this, Observer { data: List<UserListItem>? -> if (data != null) adapter.setData(data) })
 
         // TODO: Consider using better approach when LiveData
         // (https://developer.android.com/topic/libraries/architecture/livedata)
@@ -82,7 +99,7 @@ class MainActivity : AppCompatActivity() {
                                 lines.add(UserListItem(u))
                             }
                         }
-                        liveData.postValue(lines.sortedBy { item -> item.username })
+                        mLiveData.postValue(lines.sortedBy { item -> item.username })
                     }
 
                     override fun onFailure(call: Call<List<UsersResponse>>, t: Throwable) {
@@ -100,6 +117,18 @@ class MainActivity : AppCompatActivity() {
         mHandler.removeCallbacks(mListUpdateRunnable)
     }
 
+    private fun onSearchQuery(filter: String) {
+        mFilterString = filter.toLowerCase()
+        mLiveData.postValue(mLiveData.value)
+    }
+
+    private fun filteredResults(lines: List<UserListItem>): List<UserListItem> {
+        return lines.filter { it ->
+                it.username.toLowerCase().contains(mFilterString) ||
+                it.location.toLowerCase().contains(mFilterString)
+        }
+    }
+
     private fun bssidOnNone(b: UsersResponse.Beacon?): String {
         return b?.bssid ?: "None"
     }
@@ -111,10 +140,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        super.onCreateOptionsMenu(menu)
         menuInflater.inflate(R.menu.toolbar, menu)
-        return super.onCreateOptionsMenu(menu)
-    }
+        val searchView = (menu.findItem(R.id.action_search).actionView as SearchView)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
 
+            override fun onQueryTextChange(query: String): Boolean {
+                onSearchQuery(query)
+                return true
+            }
+
+            override fun onQueryTextSubmit(query: String): Boolean {
+                onSearchQuery(query)
+                return true
+            }
+
+        })
+
+        return true
+    }
     @SuppressLint("ApplySharedPref")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
