@@ -55,6 +55,8 @@ class BeaconsScanner : Service(), BeaconConsumer {
 
         // mBeaconManager.setDebug(true);
 
+        mBeaconManager.foregroundScanPeriod = 3000 // 3 seconds
+
         val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
@@ -77,10 +79,9 @@ class BeaconsScanner : Service(), BeaconConsumer {
             builder.setChannelId(channel.id)
         }
         mBeaconManager.enableForegroundServiceScanning(builder.build(), 1713)
-
         mBeaconManager.setEnableScheduledScanJobs(false)
         mBeaconManager.backgroundBetweenScanPeriod = 10000
-        mBeaconManager.backgroundScanPeriod = 1100
+        mBeaconManager.backgroundScanPeriod = 3000 // 3 seconds
         mBeaconManager.bind(this)
 
         mBackgroundPowerSaver = BackgroundPowerSaver(this)
