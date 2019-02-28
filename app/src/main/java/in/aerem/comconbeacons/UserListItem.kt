@@ -16,10 +16,10 @@ class UserListItem {
         username = valueOr(r.name, r.email)
         status = r.status
         val b = r.beacon;
-        if (b == null) {
-            location = "None"
+        location = if (b == null) {
+            "None"
         } else {
-            location = valueOr(b.label, b.bssid)
+            valueOr(b.label, b.bssid)
         }
         time = humanReadableDateInfo(r.updated_at)
     }
