@@ -19,5 +19,9 @@
     <string name="token_preference_key">backend_token</string>
     <string name="notification_content_title">Сканируем Bluetooth-маячки</string>
     <string name="action_favorite">Выход</string>
+    <string name="menu_status_cancel">Отмена</string>
+    <string name="menu_status_free">Свободен</string>
+    <string name="menu_status_adventure">Ищу приключений!</string>
+    <string name="menu_status_busy">Занят</string>
 </resources>
 
