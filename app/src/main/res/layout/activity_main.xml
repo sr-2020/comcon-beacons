@@ -33,7 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/free_white"
-                app:fab_colorNormal="#0EC866"
+                app:fab_colorNormal="#43A047"
                 app:fab_size="mini"
                 app:fab_label="@string/menu_status_free"/>
         <com.github.clans.fab.FloatingActionButton
