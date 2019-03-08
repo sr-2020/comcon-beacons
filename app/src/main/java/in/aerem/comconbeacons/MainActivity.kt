@@ -15,12 +15,18 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import `in`.aerem.comconbeacons.models.UserResponse
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.SearchManager
 import android.arch.lifecycle.Observer
+import android.view.animation.OvershootInterpolator
 import android.widget.SearchView
 import com.github.clans.fab.FloatingActionButton
 import com.github.clans.fab.FloatingActionMenu
+import kotlinx.android.synthetic.main.activity_main.view.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -119,6 +125,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<FloatingActionButton>(R.id.menu_status_free).setOnClickListener { setStatus("free") }
         findViewById<FloatingActionButton>(R.id.menu_status_adventure).setOnClickListener { setStatus("adventure") }
         findViewById<FloatingActionButton>(R.id.menu_status_busy).setOnClickListener { setStatus("busy") }
+
+        createCustomAnimation()
     }
 
     public override fun onPause() {
@@ -146,6 +154,35 @@ class MainActivity : AppCompatActivity() {
             }
         })
      }
+
+    private fun createCustomAnimation() {
+        val set = AnimatorSet()
+
+        val scaleOutX = ObjectAnimator.ofFloat(mStatusMenu.menuIconView, "scaleX", 1.0f, 0.2f)
+        val scaleOutY = ObjectAnimator.ofFloat(mStatusMenu.menuIconView, "scaleY", 1.0f, 0.2f)
+
+        val scaleInX = ObjectAnimator.ofFloat(mStatusMenu.menuIconView, "scaleX", 0.2f, 1.0f)
+        val scaleInY = ObjectAnimator.ofFloat(mStatusMenu.menuIconView, "scaleY", 0.2f, 1.0f)
+
+        scaleOutX.duration = 50
+        scaleOutY.duration = 50
+
+        scaleInX.duration = 150
+        scaleInY.duration = 150
+
+        scaleInX.addListener(object: AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator) {
+                mStatusMenu.menuIconView.setImageResource(
+                    if (mStatusMenu.isOpened) R.drawable.status_white else R.drawable.close)
+            }
+        })
+
+        set.play(scaleOutX).with(scaleOutY)
+        set.play(scaleInX).with(scaleInY).after(scaleOutX)
+        set.interpolator = OvershootInterpolator(2.0f)
+
+        mStatusMenu.iconToggleAnimatorSet = set
+    }
 
     private fun onSearchQuery(filter: String) {
         mFilterString = filter.toLowerCase()
