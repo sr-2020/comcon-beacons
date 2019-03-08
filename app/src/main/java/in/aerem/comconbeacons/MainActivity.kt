@@ -3,7 +3,6 @@ package `in`.aerem.comconbeacons
 import android.Manifest
 import android.arch.lifecycle.MutableLiveData
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -18,11 +17,6 @@ import `in`.aerem.comconbeacons.models.UserResponse
 import android.annotation.SuppressLint
 import android.app.SearchManager
 import android.arch.lifecycle.Observer
-import android.content.Context
-import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
 import android.widget.SearchView
 import retrofit2.Call
 import retrofit2.Callback
