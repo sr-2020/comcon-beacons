@@ -15,7 +15,7 @@
             tools:listitem="@layout/recycler_view_item"/>
 
     <com.github.clans.fab.FloatingActionMenu
-            android:id="@+id/menu"
+            android:id="@+id/menu_status"
             android:layout_width="395dp"
             android:layout_height="514dp"
             android:layout_alignParentBottom="true"

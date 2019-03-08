@@ -1,5 +1,6 @@
 package `in`.aerem.comconbeacons
 
+import `in`.aerem.comconbeacons.models.ProfileRequest
 import android.Manifest
 import android.arch.lifecycle.MutableLiveData
 import android.content.Intent
@@ -18,6 +19,8 @@ import android.annotation.SuppressLint
 import android.app.SearchManager
 import android.arch.lifecycle.Observer
 import android.widget.SearchView
+import com.github.clans.fab.FloatingActionButton
+import com.github.clans.fab.FloatingActionMenu
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -36,6 +39,9 @@ class MainActivity : AppCompatActivity() {
     private var mFilterString = ""
     private val mLiveData = MutableLiveData<List<UserListItem>>()
     private val mFilteredLiveData = MutableLiveData<List<UserListItem>>()
+
+    private lateinit var mStatusMenu: FloatingActionMenu
+    private lateinit var mSecurityToken: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,6 +69,9 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         mService = retrofit.create(PositionsWebService::class.java)
+
+        mSecurityToken = (application as ComConBeaconsApplication).getGlobalSharedPreferences()
+            .getString(getString(R.string.token_preference_key), "")!!
 
         // See RecyclerView guide for details if needed
         // https://developer.android.com/guide/topics/ui/layout/recyclerview
@@ -104,12 +113,39 @@ class MainActivity : AppCompatActivity() {
             }
         }
         recyclerView.adapter = adapter
+
+        mStatusMenu = findViewById(R.id.menu_status)
+
+        findViewById<FloatingActionButton>(R.id.menu_status_free).setOnClickListener { setStatus("free") }
+        findViewById<FloatingActionButton>(R.id.menu_status_adventure).setOnClickListener { setStatus("adventure") }
+        findViewById<FloatingActionButton>(R.id.menu_status_busy).setOnClickListener { setStatus("busy") }
     }
 
     public override fun onPause() {
         super.onPause()
         mHandler.removeCallbacks(mListUpdateRunnable)
     }
+
+    private fun setStatus(s: String) {
+        val r = ProfileRequest(s)
+        val c = mService.profile(mSecurityToken, r)
+        c.enqueue(object : Callback<UserResponse> {
+            override fun onResponse(call: Call<UserResponse>, response: Response<UserResponse>) {
+                mStatusMenu.close(true)
+                // Hack to instantly refresh data, as server seems not to be read-after-write consistent
+                mLiveData.postValue((mLiveData.value!!.map { u: UserListItem ->
+                    if (u.id == response.body()!!.id) {
+                        u.status = s
+                    }
+                    u
+                }))
+            }
+
+            override fun onFailure(call: Call<UserResponse>, t: Throwable) {
+                Log.e(TAG, "Http request failed: $t")
+            }
+        })
+     }
 
     private fun onSearchQuery(filter: String) {
         mFilterString = filter.toLowerCase()

@@ -7,12 +7,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class UserListItem {
+    var id: Number
     var username: String
     var location: String
     var time: String
     var status: String
 
     constructor(r: UserResponse) {
+        id = r.id
         username = valueOr(r.name, r.email)
         status = r.status
         val b = r.beacon;
