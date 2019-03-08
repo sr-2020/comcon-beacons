@@ -19,6 +19,6 @@ interface PositionsWebService {
     fun positions(@Header("Authorization") authorization: String, @Body request: PositionsRequest): Call<PositionsResponse>
 
     @GET("users")
-    fun users(): Call<List<UsersResponse>>
+    fun users(): Call<List<UserResponse>>
 }
 

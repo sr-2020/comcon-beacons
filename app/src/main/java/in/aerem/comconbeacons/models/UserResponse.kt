@@ -1,6 +1,6 @@
 package `in`.aerem.comconbeacons.models
 
-class UsersResponse (
+class UserResponse (
     var id: Int,
     var router_id: Int,
     var beacon_id: Int,

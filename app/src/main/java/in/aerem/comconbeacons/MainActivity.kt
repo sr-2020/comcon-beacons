@@ -14,7 +14,7 @@ import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import `in`.aerem.comconbeacons.models.UsersResponse
+import `in`.aerem.comconbeacons.models.UserResponse
 import android.annotation.SuppressLint
 import android.app.SearchManager
 import android.arch.lifecycle.Observer
@@ -89,8 +89,8 @@ class MainActivity : AppCompatActivity() {
         // Also see concrete example: https://medium.com/@guendouz/room-livedata-and-recyclerview-d8e96fb31dfe
         mListUpdateRunnable = object : Runnable {
             override fun run() {
-                mService.users().enqueue(object : Callback<List<UsersResponse>> {
-                    override fun onResponse(call: Call<List<UsersResponse>>, response: Response<List<UsersResponse>>) {
+                mService.users().enqueue(object : Callback<List<UserResponse>> {
+                    override fun onResponse(call: Call<List<UserResponse>>, response: Response<List<UserResponse>>) {
                         Log.i(TAG, "Http request succeeded, response = " + response.body())
                         val lines = ArrayList<UserListItem>()
                         for (u in response.body()!!) {
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
                         mLiveData.postValue(lines.sortedBy { item -> item.username })
                     }
 
-                    override fun onFailure(call: Call<List<UsersResponse>>, t: Throwable) {
+                    override fun onFailure(call: Call<List<UserResponse>>, t: Throwable) {
                         Log.e(TAG, "Http request failed: $t")
                     }
                 })
@@ -129,7 +129,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun bssidOnNone(b: UsersResponse.Beacon?): String {
+    private fun bssidOnNone(b: UserResponse.Beacon?): String {
         return b?.bssid ?: "None"
     }
 

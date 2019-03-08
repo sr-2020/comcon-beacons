@@ -1,6 +1,6 @@
 package `in`.aerem.comconbeacons
 
-import `in`.aerem.comconbeacons.models.UsersResponse
+import `in`.aerem.comconbeacons.models.UserResponse
 import org.ocpsoft.prettytime.PrettyTime
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -12,7 +12,7 @@ class UserListItem {
     var time: String
     var status: String
 
-    constructor(r: UsersResponse) {
+    constructor(r: UserResponse) {
         username = valueOr(r.name, r.email)
         status = r.status
         val b = r.beacon;
