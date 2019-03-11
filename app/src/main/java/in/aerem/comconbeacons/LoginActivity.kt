@@ -13,12 +13,11 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.View.OnClickListener
 import android.view.inputmethod.EditorInfo
-import android.widget.AutoCompleteTextView
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
 import `in`.aerem.comconbeacons.models.LoginRequest
 import `in`.aerem.comconbeacons.models.LoginResponse
+import `in`.aerem.comconbeacons.models.LoginResult
+import android.view.Gravity
+import android.widget.*
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -150,44 +149,39 @@ class LoginActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    inner class UserLoginTask internal constructor(email: String, password: String) : AsyncTask<Void, Void, String>() {
-        protected val mLoginRequest: LoginRequest
-        internal var mService: PositionsWebService
+    inner class UserLoginTask internal constructor(email: String, password: String) : AsyncTask<Void, Void, LoginResult>() {
+        private val mLoginRequest: LoginRequest = LoginRequest(email, password)
+        private val mService: PositionsWebService = Retrofit.Builder()
+            .baseUrl(getString(R.string.backend_url))
+            .addConverterFactory(GsonConverterFactory.create())
+            .build().create(PositionsWebService::class.java)
 
-        init {
-            mLoginRequest = LoginRequest(email, password)
-
-            val retrofit = Retrofit.Builder()
-                .baseUrl(getString(R.string.backend_url))
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-
-            mService = retrofit.create(PositionsWebService::class.java)
-        }
-
-        override fun doInBackground(vararg voids: Void): String? {
+        override fun doInBackground(vararg voids: Void): LoginResult {
             val c = mService.login(mLoginRequest)
             try {
                 val response = c.execute()
                 if (response.isSuccessful) {
-                    return response.body()!!.api_key
+                    return LoginResult(true, false, response.body()!!.api_key)
                 }
                 Log.e(TAG, "Unsuccessful response: " + response.errorBody())
+                return LoginResult(false, false, "")
             } catch (e: IOException) {
                 Log.e(TAG, "IOException: $e")
+                return LoginResult(false, true, "")
             }
-
-            return null
         }
 
-        override fun onPostExecute(apiKey: String?) {
+        override fun onPostExecute(result: LoginResult) {
             onFinish()
-
-            if (apiKey == null) {
+            if (result.success) {
+                onSuccessfulLogin(result.apiKey)
+            } else if (result.noConnection) {
+                val toast = Toast.makeText(this@LoginActivity, "Сервер недоступен", Toast.LENGTH_LONG)
+                toast.setGravity(Gravity.TOP, 0, 0)
+                toast.show()
+            } else {
                 mPasswordView.error = getString(R.string.error_incorrect_password)
                 mPasswordView.requestFocus()
-            } else {
-                onSuccessfulLogin(apiKey)
             }
         }
 

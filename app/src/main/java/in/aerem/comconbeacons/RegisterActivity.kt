@@ -13,12 +13,11 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.View.OnClickListener
 import android.view.inputmethod.EditorInfo
-import android.widget.AutoCompleteTextView
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
 import `in`.aerem.comconbeacons.models.LoginResponse
+import `in`.aerem.comconbeacons.models.LoginResult
 import `in`.aerem.comconbeacons.models.RegisterRequest
+import android.view.Gravity
+import android.widget.*
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -156,44 +155,39 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private inner class UserRegisterTask internal constructor(mFormData: RegisterFormData) :
-        AsyncTask<Void, Void, String>() {
-        protected val mRegisterRequest: RegisterRequest
-        internal var mService: PositionsWebService
+        AsyncTask<Void, Void, LoginResult>() {
+        protected val mRegisterRequest: RegisterRequest = RegisterRequest(mFormData.email, mFormData.name, mFormData.password)
+        internal var mService: PositionsWebService = Retrofit.Builder()
+            .baseUrl(getString(R.string.backend_url))
+            .addConverterFactory(GsonConverterFactory.create())
+            .build().create(PositionsWebService::class.java)
 
-        init {
-            mRegisterRequest = RegisterRequest(mFormData.email, mFormData.name, mFormData.password)
-
-            val retrofit = Retrofit.Builder()
-                .baseUrl(getString(R.string.backend_url))
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-
-            mService = retrofit.create(PositionsWebService::class.java)
-        }
-
-        override fun doInBackground(vararg voids: Void): String? {
+        override fun doInBackground(vararg voids: Void): LoginResult {
             val c = mService.register(mRegisterRequest)
             try {
                 val response = c.execute()
                 if (response.isSuccessful) {
-                    return response.body()!!.api_key
+                    return LoginResult(true, false, response.body()!!.api_key)
                 }
                 Log.e(TAG, "Unsuccessful response: " + response.errorBody())
+                return LoginResult(false, false, "")
             } catch (e: IOException) {
                 Log.e(TAG, "IOException: $e")
+                return LoginResult(false, true, "")
             }
-
-            return null
         }
 
-        override fun onPostExecute(apiKey: String?) {
+        override fun onPostExecute(result: LoginResult) {
             onFinish()
-
-            if (apiKey == null) {
+            if (result.success) {
+                onSuccessfulRegister(result.apiKey)
+            } else if (result.noConnection) {
+                val toast = Toast.makeText(this@RegisterActivity, "Сервер недоступен", Toast.LENGTH_LONG)
+                toast.setGravity(Gravity.TOP, 0, 0)
+                toast.show()
+            } else {
                 mEmailView.error = getString(R.string.error_user_already_exist)
                 mEmailView.requestFocus()
-            } else {
-                onSuccessfulRegister(apiKey)
             }
         }
 
