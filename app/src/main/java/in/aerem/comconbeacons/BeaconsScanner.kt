@@ -53,7 +53,7 @@ class BeaconsScanner : Service(), BeaconConsumer {
         // 00 03 19 C1 03 03 02 E0 FF 11 09 69 54 41 47 20 20 20 20 20 20 20 20 20 20 20 20
         mBeaconManager.beaconParsers.add(BeaconParser().setBeaconLayout("m:2-4=19C103,i:5-20,i:21-22,i:23-24,p:25-25"))
 
-        // mBeaconManager.setDebug(true);
+        BeaconManager.setDebug(true);
 
         mBeaconManager.foregroundScanPeriod = 3000 // 3 seconds
 
