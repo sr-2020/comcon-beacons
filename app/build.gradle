@@ -36,6 +36,7 @@ dependencies {
     implementation 'org.ocpsoft.prettytime:prettytime:4.0.1.Final'
     implementation 'com.github.clans:fab:1.6.4'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.bugfender.sdk:android:1.+'
 }
 repositories {
     mavenCentral()
