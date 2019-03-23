@@ -125,6 +125,7 @@ class BeaconsScanner : Service(), BeaconConsumer {
     private fun sendBeacons(beacons: Collection<Beacon>) {
         var beaconsList = mutableListOf<BeaconData>()
         for (b in beacons) {
+            Log.d(TAG, "Beacon id = " + b.id1 + "-" + b.id2 + "-" + b.id3 + " RSSI = " + b.rssi)
             beaconsList.add(BeaconData(b.id1.toString(), b.bluetoothAddress, b.rssi))
         }
         val req = PositionsRequest(beaconsList)
