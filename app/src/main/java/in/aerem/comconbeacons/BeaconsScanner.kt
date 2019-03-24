@@ -39,7 +39,7 @@ class BeaconsScanner : Service(), BeaconConsumer {
 
         mService = retrofit.create(PositionsWebService::class.java)
 
-        mBeaconManager = org.altbeacon.beacon.BeaconManager.getInstanceForApplication(this)
+        mBeaconManager = BeaconManager.getInstanceForApplication(this)
         mBeaconManager.beaconParsers.clear()
         // Detect iBeacons (0215).
         // Example advertising data of ble_app_beacon nRF example
