@@ -39,6 +39,8 @@ class BeaconsScanner : Service(), BeaconConsumer {
 
         mService = retrofit.create(PositionsWebService::class.java)
 
+        Beacon.setHardwareEqualityEnforced(true)
+
         mBeaconManager = BeaconManager.getInstanceForApplication(this)
         mBeaconManager.beaconParsers.clear()
         // Detect BLE beacons (02).
