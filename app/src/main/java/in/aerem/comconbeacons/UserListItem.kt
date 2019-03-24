@@ -33,7 +33,7 @@ class UserListItem {
     }
 
     private fun humanReadableDateInfo(rawDate: String): String {
-        format.timeZone = TimeZone.getTimeZone("UTC")
+        format.timeZone = TimeZone.getTimeZone("Europe/Moscow")
         try {
             val p = PrettyTime(Locale("ru"))
             val date = format.parse(rawDate)
