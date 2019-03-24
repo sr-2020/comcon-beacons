@@ -15,7 +15,7 @@
     <string name="error_user_already_exist">Такой пользователь уже существует</string>
     <string name="error_field_required">Это поле обязательно к заполнению</string>
 
-    <string name="backend_url">https://demo.evarun.ru/api/v1/</string>
+    <string name="backend_url">http://position.evarun.ru/api/v1/</string>
     <string name="token_preference_key">backend_token</string>
     <string name="notification_content_title">Сканируем Bluetooth-маячки</string>
     <string name="action_favorite">Выход</string>
