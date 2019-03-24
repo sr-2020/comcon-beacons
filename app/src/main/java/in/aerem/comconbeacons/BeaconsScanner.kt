@@ -41,13 +41,14 @@ class BeaconsScanner : Service(), BeaconConsumer {
 
         mBeaconManager = BeaconManager.getInstanceForApplication(this)
         mBeaconManager.beaconParsers.clear()
-        // Detect iBeacons (0215).
+        // Detect BLE beacons (02).
         // Example advertising data of ble_app_beacon nRF example
         //  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
         // 59 00 02 15 01 12 23 34 45 56 67 78 89 9A AB BC CD DE EF F0 01 02 03 04 C3
-        var parser = BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24");
+        var parser = BeaconParser().setBeaconLayout("m:2-2=02,i:4-19,i:20-21,i:22-23,p:24-24");
+        // 0x0059 is Apple manufacturer code (default for iBeacons).
         // 0x0059 is Nordic Semiconductors manufacturer code.
-        parser.setHardwareAssistManufacturerCodes(intArrayOf(0x59))
+        parser.setHardwareAssistManufacturerCodes(intArrayOf(0x59, 0x4c))
         mBeaconManager.beaconParsers.add(parser)
 
         BeaconManager.setDebug(true);
