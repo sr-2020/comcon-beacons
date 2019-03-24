@@ -18,11 +18,6 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-import java.util.ArrayList
-import android.app.PendingIntent
-
-
-
 class BeaconsScanner : Service(), BeaconConsumer {
     private val TAG = "ComConBeacons"
     private lateinit var mBackgroundPowerSaver: BackgroundPowerSaver
