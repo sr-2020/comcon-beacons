@@ -7,8 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-
-import java.util.ArrayList
+import org.ocpsoft.prettytime.PrettyTime
+import java.util.*
 
 class UsersPositionsAdapter : RecyclerView.Adapter<UsersPositionsAdapter.ViewHolder>() {
     private var mDataset: List<UserListItem> = ArrayList()
@@ -29,7 +29,7 @@ class UsersPositionsAdapter : RecyclerView.Adapter<UsersPositionsAdapter.ViewHol
         holder.mStatusIconView.setImageResource(statusToResourceId(u.status))
         holder.mUsernameView.text = u.username
         holder.mLocationView.text = u.location
-        holder.mTimeView.text = u.time
+        holder.mTimeView.text = PrettyTime(Locale("ru")).format(u.date)
     }
 
     override fun getItemCount(): Int {

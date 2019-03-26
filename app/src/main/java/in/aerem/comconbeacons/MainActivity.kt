@@ -32,8 +32,8 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-
-import java.util.ArrayList
+import java.time.Duration
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "ComConBeacons"
@@ -101,11 +101,15 @@ class MainActivity : AppCompatActivity() {
                 mService.users().enqueue(object : Callback<List<UserResponse>> {
                     override fun onResponse(call: Call<List<UserResponse>>, response: Response<List<UserResponse>>) {
                         Log.i(TAG, "Http request succeeded, response = " + response.body())
-                        val lines = ArrayList<UserListItem>()
+                        var lines = ArrayList<UserListItem>()
                         for (u in response.body()!!) {
-                           lines.add(UserListItem(u))
+                            lines.add(UserListItem(u))
                         }
-                        mLiveData.postValue(lines.sortedBy { item -> item.username })
+
+                        // Last seven days
+                        var recentEntries = lines.filter { item -> Date().time - item.date.time < 1000 * 60 * 60 * 7 }
+                        // More recent entries first
+                        mLiveData.postValue(recentEntries.sortedBy { item -> item.date }.reversed())
                     }
 
                     override fun onFailure(call: Call<List<UserResponse>>, t: Throwable) {
