@@ -1,5 +1,9 @@
 package `in`.aerem.comconbeacons
 
+import `in`.aerem.comconbeacons.models.BeaconData
+import `in`.aerem.comconbeacons.models.PositionsRequest
+import `in`.aerem.comconbeacons.models.PositionsResponse
+import `in`.aerem.comconbeacons.models.getBackendUrl
 import android.app.*
 import android.content.Context
 import android.content.Intent
@@ -7,10 +11,6 @@ import android.os.Build
 import android.os.IBinder
 import android.os.RemoteException
 import android.util.Log
-import `in`.aerem.comconbeacons.models.BeaconData
-import `in`.aerem.comconbeacons.models.PositionsRequest
-import `in`.aerem.comconbeacons.models.PositionsResponse
-import `in`.aerem.comconbeacons.models.getBackendUrl
 import org.altbeacon.beacon.*
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver
 import retrofit2.Call
@@ -18,6 +18,9 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+
+
+
 
 class BeaconsScanner : Service(), BeaconConsumer {
     private val TAG = "ComConBeacons"
@@ -28,13 +31,18 @@ class BeaconsScanner : Service(), BeaconConsumer {
 
     override fun onCreate() {
         Log.d(TAG, "BeaconsScanner::onCreate")
-        val retrofit = Retrofit.Builder()
+        mService = Retrofit.Builder()
             .baseUrl(getBackendUrl(application, this))
             .addConverterFactory(GsonConverterFactory.create())
-            .build()
+            .build().create(PositionsWebService::class.java)
 
-        mService = retrofit.create(PositionsWebService::class.java)
+        mSecurityToken = (application as ComConBeaconsApplication).getGlobalSharedPreferences()
+            .getString(getString(R.string.token_preference_key), "")!!
 
+        setUpBeaconManager()
+    }
+
+    private fun setUpBeaconManager() {
         Beacon.setHardwareEqualityEnforced(true)
 
         mBeaconManager = BeaconManager.getInstanceForApplication(this)
@@ -81,9 +89,6 @@ class BeaconsScanner : Service(), BeaconConsumer {
         mBeaconManager.bind(this)
 
         mBackgroundPowerSaver = BackgroundPowerSaver(this)
-
-        mSecurityToken = (application as ComConBeaconsApplication).getGlobalSharedPreferences()
-            .getString(getString(R.string.token_preference_key), "")!!
     }
 
     override fun onDestroy() {
