@@ -1,5 +1,8 @@
 package `in`.aerem.comconbeacons
 
+import `in`.aerem.comconbeacons.models.LoginResult
+import `in`.aerem.comconbeacons.models.RegisterRequest
+import `in`.aerem.comconbeacons.models.getBackendUrl
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.content.Intent
@@ -9,22 +12,12 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
-import android.view.KeyEvent
-import android.view.View
-import android.view.View.OnClickListener
-import android.view.inputmethod.EditorInfo
-import `in`.aerem.comconbeacons.models.LoginResponse
-import `in`.aerem.comconbeacons.models.LoginResult
-import `in`.aerem.comconbeacons.models.RegisterRequest
-import `in`.aerem.comconbeacons.models.getBackendUrl
 import android.view.Gravity
+import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.*
-import retrofit2.Call
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-
-import java.io.IOException
 
 class RegisterActivity : AppCompatActivity() {
     private val TAG = "ComConBeacons"
@@ -158,21 +151,21 @@ class RegisterActivity : AppCompatActivity() {
     private inner class UserRegisterTask internal constructor(mFormData: RegisterFormData) :
         AsyncTask<Void, Void, LoginResult>() {
         protected val mRegisterRequest: RegisterRequest = RegisterRequest(mFormData.email, mFormData.name, mFormData.password)
-        internal var mService: PositionsWebService = Retrofit.Builder()
-            .baseUrl(getBackendUrl(application,this@RegisterActivity))
-            .addConverterFactory(GsonConverterFactory.create())
-            .build().create(PositionsWebService::class.java)
 
         override fun doInBackground(vararg voids: Void): LoginResult {
-            val c = mService.register(mRegisterRequest)
             try {
+                val service = Retrofit.Builder()
+                    .baseUrl(getBackendUrl(application, this@RegisterActivity))
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build().create(PositionsWebService::class.java)
+                val c = service.register(mRegisterRequest)
                 val response = c.execute()
                 if (response.isSuccessful) {
                     return LoginResult(true, false, response.body()!!.api_key)
                 }
                 Log.e(TAG, "Unsuccessful response: " + response.errorBody())
                 return LoginResult(false, false, "")
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 Log.e(TAG, "IOException: $e")
                 return LoginResult(false, true, "")
             }

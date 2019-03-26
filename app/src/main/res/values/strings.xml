@@ -24,5 +24,8 @@
     <string name="menu_status_free">Свободен</string>
     <string name="menu_status_adventure">Ищу приключений!</string>
     <string name="menu_status_busy">Занят</string>
+    <string name="choose_server_address_title">Введите адрес сервера</string>
+    <string name="cancel">Отмена</string>
+    <string name="ok">Oк</string>
 </resources>
 
