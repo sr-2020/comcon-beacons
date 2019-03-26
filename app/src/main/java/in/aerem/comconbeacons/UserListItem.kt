@@ -15,7 +15,7 @@ class UserListItem {
 
     constructor(r: UserResponse) {
         id = r.id
-        username = valueOr(r.name, r.email)
+        username = valueOr(r.name, "Anonymous")
         status = r.status
         val b = r.beacon;
         location = if (b == null) {
