@@ -17,12 +17,8 @@ class UserListItem {
         id = r.id
         username = valueOr(r.name, "Anonymous")
         status = r.status
-        val b = r.beacon;
-        location = if (b == null) {
-            "None"
-        } else {
-            valueOr(b.label, b.bssid)
-        }
+        val l = r.location;
+        location = l?.label ?: "None"
         time = humanReadableDateInfo(r.updated_at)
     }
 
@@ -41,6 +37,5 @@ class UserListItem {
         } catch (e: ParseException) {
             return ""
         }
-
     }
 }

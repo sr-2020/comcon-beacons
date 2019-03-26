@@ -193,8 +193,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun bssidOnNone(b: UserResponse.Beacon?): String {
-        return b?.bssid ?: "None"
+    private fun labelOrNone(l: UserResponse.Location?): String {
+        return l?.label ?: "None"
     }
 
     override fun onResume() {

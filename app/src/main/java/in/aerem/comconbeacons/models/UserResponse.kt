@@ -6,13 +6,11 @@ class UserResponse (
     var beacon_id: Int,
     var name: String?,
     var updated_at: String,
-    var beacon: Beacon?,
+    var location: Location?,
     var status: String
 ) {
-    class Beacon(
+    class Location (
         var id: Int,
-        var ssid: String,
-        var bssid: String,
-        var label: String?
+        var label: String
     )
 }
