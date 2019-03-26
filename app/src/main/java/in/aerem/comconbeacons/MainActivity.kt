@@ -1,8 +1,19 @@
 package `in`.aerem.comconbeacons
 
 import `in`.aerem.comconbeacons.models.ProfileRequest
+import `in`.aerem.comconbeacons.models.UserResponse
+import `in`.aerem.comconbeacons.models.getBackendUrl
 import android.Manifest
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
+import android.app.SearchManager
 import android.arch.lifecycle.MutableLiveData
+import android.arch.lifecycle.Observer
+import android.bluetooth.BluetoothAdapter
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -14,31 +25,21 @@ import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import `in`.aerem.comconbeacons.models.UserResponse
-import `in`.aerem.comconbeacons.models.getBackendUrl
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
-import android.annotation.SuppressLint
-import android.app.SearchManager
-import android.arch.lifecycle.Observer
 import android.view.animation.OvershootInterpolator
 import android.widget.SearchView
 import com.github.clans.fab.FloatingActionButton
 import com.github.clans.fab.FloatingActionMenu
-import kotlinx.android.synthetic.main.activity_main.view.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.time.Duration
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "ComConBeacons"
     private val PERMISSION_REQUEST_COARSE_LOCATION = 1
+    private val REQUEST_ENABLE_BT = 2
     private lateinit var mService: PositionsWebService
     private val mHandler = Handler()
     private lateinit var mListUpdateRunnable: Runnable
@@ -204,6 +205,15 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        if (!bluetoothAdapter.isEnabled) {
+            try {
+                val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+            } catch (ex: ActivityNotFoundException) {
+            }
+        }
+
         this.startService(Intent(this, BeaconsScanner::class.java))
         mListUpdateRunnable.run()
     }
