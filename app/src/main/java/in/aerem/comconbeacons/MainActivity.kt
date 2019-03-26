@@ -15,6 +15,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import `in`.aerem.comconbeacons.models.UserResponse
+import `in`.aerem.comconbeacons.models.getBackendUrl
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
@@ -70,7 +71,7 @@ class MainActivity : AppCompatActivity() {
 
 
         val retrofit = Retrofit.Builder()
-            .baseUrl(getString(R.string.backend_url))
+            .baseUrl(getBackendUrl(application,this))
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 

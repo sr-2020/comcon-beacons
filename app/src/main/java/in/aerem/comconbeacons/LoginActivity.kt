@@ -16,6 +16,7 @@ import android.view.inputmethod.EditorInfo
 import `in`.aerem.comconbeacons.models.LoginRequest
 import `in`.aerem.comconbeacons.models.LoginResponse
 import `in`.aerem.comconbeacons.models.LoginResult
+import `in`.aerem.comconbeacons.models.getBackendUrl
 import android.view.Gravity
 import android.widget.*
 import retrofit2.Call
@@ -152,7 +153,7 @@ class LoginActivity : AppCompatActivity() {
     inner class UserLoginTask internal constructor(email: String, password: String) : AsyncTask<Void, Void, LoginResult>() {
         private val mLoginRequest: LoginRequest = LoginRequest(email, password)
         private val mService: PositionsWebService = Retrofit.Builder()
-            .baseUrl(getString(R.string.backend_url))
+            .baseUrl(getBackendUrl(application, this@LoginActivity))
             .addConverterFactory(GsonConverterFactory.create())
             .build().create(PositionsWebService::class.java)
 

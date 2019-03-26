@@ -10,6 +10,7 @@ import android.util.Log
 import `in`.aerem.comconbeacons.models.BeaconData
 import `in`.aerem.comconbeacons.models.PositionsRequest
 import `in`.aerem.comconbeacons.models.PositionsResponse
+import `in`.aerem.comconbeacons.models.getBackendUrl
 import org.altbeacon.beacon.*
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver
 import retrofit2.Call
@@ -28,7 +29,7 @@ class BeaconsScanner : Service(), BeaconConsumer {
     override fun onCreate() {
         Log.d(TAG, "BeaconsScanner::onCreate")
         val retrofit = Retrofit.Builder()
-            .baseUrl(getString(R.string.backend_url))
+            .baseUrl(getBackendUrl(application, this))
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 

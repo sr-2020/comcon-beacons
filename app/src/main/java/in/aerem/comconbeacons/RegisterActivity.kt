@@ -16,6 +16,7 @@ import android.view.inputmethod.EditorInfo
 import `in`.aerem.comconbeacons.models.LoginResponse
 import `in`.aerem.comconbeacons.models.LoginResult
 import `in`.aerem.comconbeacons.models.RegisterRequest
+import `in`.aerem.comconbeacons.models.getBackendUrl
 import android.view.Gravity
 import android.widget.*
 import retrofit2.Call
@@ -158,7 +159,7 @@ class RegisterActivity : AppCompatActivity() {
         AsyncTask<Void, Void, LoginResult>() {
         protected val mRegisterRequest: RegisterRequest = RegisterRequest(mFormData.email, mFormData.name, mFormData.password)
         internal var mService: PositionsWebService = Retrofit.Builder()
-            .baseUrl(getString(R.string.backend_url))
+            .baseUrl(getBackendUrl(application,this@RegisterActivity))
             .addConverterFactory(GsonConverterFactory.create())
             .build().create(PositionsWebService::class.java)
 
