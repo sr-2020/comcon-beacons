@@ -119,7 +119,7 @@ class LoginActivity : AppCompatActivity() {
     private fun loginFormData(): LoginFormData? {
         mEmailView.error = null
         mPasswordView.error = null
-        val email = mEmailView.text.toString()
+        val email = mEmailView.text.toString().trim()
         val password = mPasswordView.text.toString()
         // Check for a valid password, if the user entered one.
         if (TextUtils.isEmpty(password)) {

@@ -83,8 +83,8 @@ class RegisterActivity : AppCompatActivity() {
         mPasswordView.error = null
         mPasswordRepeatView.error = null
 
-        val email = mEmailView.text.toString()
-        val name = mNameView.text.toString()
+        val email = mEmailView.text.toString().trim()
+        val name = mNameView.text.toString().trim()
         val password = mPasswordView.text.toString()
         val passwordRepeat = mPasswordRepeatView.text.toString()
         if (TextUtils.isEmpty(email)) {
