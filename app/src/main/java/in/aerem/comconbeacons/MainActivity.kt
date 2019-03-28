@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         // Last seven days
-                        var recentEntries = lines.filter { item -> Date().time - item.date.time < 1000 * 60 * 60 * 7 }
+                        var recentEntries = lines.filter { item -> Date().time - item.date.time < 1000 * 60 * 60 * 24 * 7 }
                         // More recent entries first
                         mLiveData.postValue(recentEntries.sortedBy { item -> item.date }.reversed())
                     }
