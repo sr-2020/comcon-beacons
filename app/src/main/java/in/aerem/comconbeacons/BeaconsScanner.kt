@@ -54,7 +54,7 @@ class BeaconsScanner : Service(), BeaconConsumer {
         var parser = BeaconParser().setBeaconLayout("m:2-2=02,i:4-19,i:20-21,i:22-23,p:24-24");
         // 0x0059 is Apple manufacturer code (default for iBeacons).
         // 0x0059 is Nordic Semiconductors manufacturer code.
-        parser.setHardwareAssistManufacturerCodes(intArrayOf(0x59, 0x4c))
+        parser.setHardwareAssistManufacturerCodes(intArrayOf(0x59))
         mBeaconManager.beaconParsers.add(parser)
 
         BeaconManager.setDebug(true);
