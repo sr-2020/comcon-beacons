@@ -12,7 +12,6 @@ import android.os.IBinder
 import android.os.RemoteException
 import android.util.Log
 import org.altbeacon.beacon.*
-import org.altbeacon.beacon.powersave.BackgroundPowerSaver
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -24,7 +23,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class BeaconsScanner : Service(), BeaconConsumer {
     private val TAG = "ComConBeacons"
-    private lateinit var mBackgroundPowerSaver: BackgroundPowerSaver
+    // private lateinit var mBackgroundPowerSaver: BackgroundPowerSaver
     private lateinit var mBeaconManager: BeaconManager
     private lateinit var mService: PositionsWebService
     private lateinit var mSecurityToken: String
@@ -88,7 +87,7 @@ class BeaconsScanner : Service(), BeaconConsumer {
         mBeaconManager.backgroundScanPeriod = 3000 // 3 seconds
         mBeaconManager.bind(this)
 
-        mBackgroundPowerSaver = BackgroundPowerSaver(this)
+        // mBackgroundPowerSaver = BackgroundPowerSaver(this)
     }
 
     override fun onDestroy() {
