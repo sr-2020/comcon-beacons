@@ -28,5 +28,11 @@
     <string name="enable_location">Для работы приложения необходимо включить доступ к местоположению</string>
     <string name="cancel">Отмена</string>
     <string name="ok">Oк</string>
+    <string name="search">Поиск</string>
+    <string name="sort_by">Сортировать по</string>
+    <string name="sort_by_name">Имя</string>
+    <string name="sort_by_location">Положение</string>
+    <string name="sort_by_status">Статус</string>
+    <string name="sort_by_freshness">Время обновления</string>
 </resources>
 

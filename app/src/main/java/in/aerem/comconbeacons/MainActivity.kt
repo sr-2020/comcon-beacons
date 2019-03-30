@@ -14,6 +14,7 @@ import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
@@ -49,10 +50,19 @@ class MainActivity : AppCompatActivity() {
 
     private var mFilterString = ""
     private val mLiveData = MutableLiveData<List<UserListItem>>()
-    private val mFilteredLiveData = MutableLiveData<List<UserListItem>>()
+    private val mSortedFilteredLiveData = MutableLiveData<List<UserListItem>>()
 
     private lateinit var mStatusMenu: FloatingActionMenu
     private lateinit var mSecurityToken: String
+
+    enum class SortBy {
+        NAME,
+        LOCATION,
+        STATUS,
+        FRESHNESS,
+    }
+
+    private var mSortBy: SortBy = SortBy.FRESHNESS
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,8 +90,12 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         val adapter = UsersPositionsAdapter()
-        mLiveData.observe(this, Observer { data: List<UserListItem>? -> if (data != null) mFilteredLiveData.postValue(filteredResults(data)) })
-        mFilteredLiveData.observe(this, Observer { data: List<UserListItem>? -> if (data != null) adapter.setData(data) })
+        mLiveData.observe(this, Observer {
+                data: List<UserListItem>? ->
+            if (data != null) mSortedFilteredLiveData.postValue(filteredResults(sortedResults(data)))
+        })
+        mSortedFilteredLiveData.observe(this,
+            Observer { data: List<UserListItem>? -> if (data != null) adapter.setData(data) })
 
         // TODO: Consider using better approach when LiveData
         // (https://developer.android.com/topic/libraries/architecture/livedata)
@@ -103,7 +117,7 @@ class MainActivity : AppCompatActivity() {
                         // Last seven days
                         var recentEntries = lines.filter { item -> Date().time - item.date.time < 1000 * 60 * 60 * 24 * 7 }
                         // More recent entries first
-                        mLiveData.postValue(recentEntries.sortedBy { item -> item.date }.reversed())
+                        mLiveData.postValue(recentEntries)
                     }
 
                     override fun onFailure(call: Call<List<UserResponse>>, t: Throwable) {
@@ -192,6 +206,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun sortedResults(lines: List<UserListItem>): List<UserListItem> {
+        return when (mSortBy) {
+            SortBy.FRESHNESS -> lines.sortedBy { item -> item.date }.reversed()
+            SortBy.LOCATION -> lines.sortedBy { item -> item.location }
+            SortBy.NAME -> lines.sortedBy { item -> item.username.toLowerCase() }
+            SortBy.STATUS -> lines.sortedBy { item -> item.status }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         checkEverythingEnabled()
@@ -268,6 +291,23 @@ class MainActivity : AppCompatActivity() {
             this.stopService(Intent(this, BeaconsScanner::class.java))
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
+        } else if (id == R.id.action_sort) {
+            AlertDialog.Builder(this)
+                .setTitle(getString(R.string.sort_by))
+                .setSingleChoiceItems(
+                    arrayOf(
+                        getString(R.string.sort_by_name),
+                        getString(R.string.sort_by_location),
+                        getString(R.string.sort_by_status),
+                        getString(R.string.sort_by_freshness)),
+                    mSortBy.ordinal
+                ) { dialog: DialogInterface, which: Int ->
+                    mSortBy = SortBy.values()[which]
+                    mLiveData.postValue(mLiveData.value)
+                    dialog.dismiss()
+                }
+                .create()
+                .show()
         }
         return super.onOptionsItemSelected(item)
     }
