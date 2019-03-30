@@ -199,10 +199,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun labelOrNone(l: UserResponse.Location?): String {
-        return l?.label ?: "None"
-    }
-
     override fun onResume() {
         super.onResume()
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
