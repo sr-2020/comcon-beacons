@@ -69,6 +69,8 @@ class LoginActivity : AppCompatActivity() {
             onSuccessfulLogin(maybeToken)
         }
 
+        val versionView = findViewById<TextView>(R.id.version)
+        versionView.text = "v%s.%d".format(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
     }
 
     private fun attemptRegister() {
