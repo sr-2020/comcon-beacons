@@ -13,12 +13,15 @@ import android.app.SearchManager
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
 import android.bluetooth.BluetoothAdapter
-import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.provider.Settings
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -59,17 +62,6 @@ class MainActivity : AppCompatActivity() {
         if (Intent.ACTION_SEARCH == intent.action) {
             intent.getStringExtra(SearchManager.QUERY)?.also { query -> onSearchQuery(query) }
         }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Android M Permission check
-            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
-                    PERMISSION_REQUEST_COARSE_LOCATION
-                )
-            }
-        }
-
 
         val retrofit = Retrofit.Builder()
             .baseUrl(getBackendUrl(application,this))
@@ -131,6 +123,7 @@ class MainActivity : AppCompatActivity() {
 
         createCustomAnimation()
     }
+
 
     public override fun onPause() {
         super.onPause()
@@ -201,17 +194,48 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-        if (!bluetoothAdapter.isEnabled) {
-            try {
-                val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
-            } catch (ex: ActivityNotFoundException) {
-            }
-        }
-
+        checkEverythingEnabled()
         this.startService(Intent(this, BeaconsScanner::class.java))
         mListUpdateRunnable.run()
+    }
+
+    private fun checkEverythingEnabled() {
+        checkBluetoothEnabled()
+        checkLocationPermission()
+        checkLocationService()
+    }
+
+    private fun checkBluetoothEnabled() {
+        if (!BluetoothAdapter.getDefaultAdapter().isEnabled) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+        }
+    }
+
+    private fun checkLocationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android M Permission check
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                    arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
+                    PERMISSION_REQUEST_COARSE_LOCATION
+                )
+            }
+        }
+    }
+
+    private fun checkLocationService() {
+        val manager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            AlertDialog.Builder(this)
+                .setMessage(getString(R.string.enable_location))
+                .setCancelable(false)
+                .setPositiveButton(getString(R.string.ok)) { _, _ ->
+                    startActivityForResult(Intent (Settings.ACTION_LOCATION_SOURCE_SETTINGS), 0)
+                }
+                .create()
+                .show()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
