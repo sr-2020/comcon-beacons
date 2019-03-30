@@ -139,7 +139,7 @@ class MainActivity : AppCompatActivity() {
                 // Hack to instantly refresh data, as server seems not to be read-after-write consistent
                 mLiveData.postValue((mLiveData.value!!.map { u: UserListItem ->
                     if (u.id == response.body()!!.id) {
-                        u.status = s
+                        u.setStatusFromString(s)
                     }
                     u
                 }))

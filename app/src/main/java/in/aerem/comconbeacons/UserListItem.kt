@@ -9,15 +9,32 @@ class UserListItem {
     var username: String
     var location: String
     var date: Date
-    var status: String
+
+    enum class Status {
+        ADVENTURE,
+        FREE,
+        BUSY,
+        UNKNOWN
+    }
+
+    lateinit var status: Status
 
     constructor(r: UserResponse) {
         id = r.id
         username = valueOr(r.name, "Anonymous")
-        status = r.status
+        setStatusFromString(r.status)
         val l = r.location;
         location = l?.label ?: "None"
         date = getDate(r.updated_at)
+    }
+
+    fun setStatusFromString(s: String) {
+        status =  when (s) {
+            "adventure" -> Status.ADVENTURE
+            "free" -> Status.FREE
+            "busy" -> Status.BUSY
+            else -> Status.UNKNOWN
+        }
     }
 
     private var format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")

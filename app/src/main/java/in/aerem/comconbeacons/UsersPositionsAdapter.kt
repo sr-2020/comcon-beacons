@@ -26,7 +26,7 @@ class UsersPositionsAdapter : RecyclerView.Adapter<UsersPositionsAdapter.ViewHol
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val u = mDataset[position]
-        holder.mStatusIconView.setImageResource(statusToResourceId(u.status))
+        holder.mStatusIconView.setImageResource(statusToResourceId(u.status.toString().toLowerCase()))
         holder.mUsernameView.text = u.username
         holder.mLocationView.text = u.location
         holder.mTimeView.text = PrettyTime(Locale("ru")).format(u.date)
