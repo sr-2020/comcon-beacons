@@ -55,5 +55,5 @@
           android:id="@+id/favoriteButton" android:layout_marginBottom="4dp"
           app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent"
           android:layout_marginEnd="4dp"
-          android:background="@null"/>
+          android:background="@null" android:paddingTop="15dp" android:paddingStart="15dp"/>
 </android.support.constraint.ConstraintLayout>
