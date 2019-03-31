@@ -17,24 +17,20 @@ class UserListItem {
         UNKNOWN
     }
 
-    lateinit var status: Status
+    var status: Status
 
     constructor(r: UserResponse) {
         id = r.id
         username = valueOr(r.name, "Anonymous")
-        setStatusFromString(r.status)
-        val l = r.location;
-        location = l?.label ?: "None"
-        date = getDate(r.updated_at)
-    }
-
-    fun setStatusFromString(s: String) {
-        status =  when (s) {
+        status = when (r.status) {
             "adventure" -> Status.ADVENTURE
             "free" -> Status.FREE
             "busy" -> Status.BUSY
             else -> Status.UNKNOWN
         }
+        val l = r.location;
+        location = l?.label ?: "None"
+        date = getDate(r.updated_at)
     }
 
     private var format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")

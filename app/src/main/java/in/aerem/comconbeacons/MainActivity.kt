@@ -124,6 +124,7 @@ class MainActivity : AppCompatActivity() {
                         Log.e(TAG, "Http request failed: $t")
                     }
                 })
+                mHandler.removeCallbacks(this)
                 mHandler.postDelayed(this, 10000)
             }
         }
@@ -149,14 +150,8 @@ class MainActivity : AppCompatActivity() {
         val c = mService.profile(mSecurityToken, r)
         c.enqueue(object : Callback<UserResponse> {
             override fun onResponse(call: Call<UserResponse>, response: Response<UserResponse>) {
+                updateUserList()
                 mStatusMenu.close(true)
-                // Hack to instantly refresh data, as server seems not to be read-after-write consistent
-                mLiveData.postValue((mLiveData.value!!.map { u: UserListItem ->
-                    if (u.id == response.body()!!.id) {
-                        u.setStatusFromString(s)
-                    }
-                    u
-                }))
             }
 
             override fun onFailure(call: Call<UserResponse>, t: Throwable) {
@@ -194,6 +189,10 @@ class MainActivity : AppCompatActivity() {
         mStatusMenu.iconToggleAnimatorSet = set
     }
 
+    private fun updateUserList() {
+        mListUpdateRunnable.run()
+    }
+
     private fun onSearchQuery(filter: String) {
         mFilterString = filter.toLowerCase()
         rePostLiveData()
@@ -219,7 +218,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         checkEverythingEnabled()
         this.startService(Intent(this, BeaconsScanner::class.java))
-        mListUpdateRunnable.run()
+        updateUserList()
     }
 
     private fun checkEverythingEnabled() {
