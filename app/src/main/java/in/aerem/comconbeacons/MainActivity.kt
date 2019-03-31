@@ -51,12 +51,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val retrofit = Retrofit.Builder()
+        mService = Retrofit.Builder()
             .baseUrl(getBackendUrl(application,this))
             .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        mService = retrofit.create(PositionsWebService::class.java)
+            .build().create(PositionsWebService::class.java)
 
         mSecurityToken = (application as ComConBeaconsApplication).getGlobalSharedPreferences()
             .getString(getString(R.string.token_preference_key), "")!!
