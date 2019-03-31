@@ -1,6 +1,7 @@
 package `in`.aerem.comconbeacons
 
 import `in`.aerem.comconbeacons.models.ProfileRequest
+import `in`.aerem.comconbeacons.models.UserListViewModel
 import `in`.aerem.comconbeacons.models.UserResponse
 import `in`.aerem.comconbeacons.models.getBackendUrl
 import android.Manifest
@@ -10,8 +11,8 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.SearchManager
-import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.DialogInterface
@@ -20,7 +21,6 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.provider.Settings
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
@@ -38,31 +38,15 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "ComConBeacons"
     private val PERMISSION_REQUEST_COARSE_LOCATION = 1
     private val REQUEST_ENABLE_BT = 2
-    private lateinit var mService: PositionsWebService
-    private val mHandler = Handler()
-    private lateinit var mListUpdateRunnable: Runnable
-
-    private var mFilterString = ""
-    private val mLiveData = MutableLiveData<List<UserListItem>>()
-    private val mSortedFilteredLiveData = MutableLiveData<List<UserListItem>>()
-
     private lateinit var mStatusMenu: FloatingActionMenu
     private lateinit var mSecurityToken: String
-
-    enum class SortBy {
-        NAME,
-        LOCATION,
-        STATUS,
-        FRESHNESS,
-    }
-
-    private var mSortBy: SortBy = SortBy.FRESHNESS
+    private lateinit var mService: PositionsWebService
+    private lateinit var mModel: UserListViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,7 +54,7 @@ class MainActivity : AppCompatActivity() {
 
         // Verify the action and get the query
         if (Intent.ACTION_SEARCH == intent.action) {
-            intent.getStringExtra(SearchManager.QUERY)?.also { query -> onSearchQuery(query) }
+            intent.getStringExtra(SearchManager.QUERY)?.also { query -> mModel.setFilter(query) }
         }
 
         val retrofit = Retrofit.Builder()
@@ -90,44 +74,10 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         val adapter = UsersPositionsAdapter()
-        mLiveData.observe(this, Observer {
-                data: List<UserListItem>? ->
-            if (data != null) mSortedFilteredLiveData.postValue(filteredResults(sortedResults(data)))
-        })
-        mSortedFilteredLiveData.observe(this,
+        mModel = ViewModelProviders.of(this).get(UserListViewModel::class.java)
+        mModel.getUsersList().observe(this,
             Observer { data: List<UserListItem>? -> if (data != null) adapter.setData(data) })
 
-        // TODO: Consider using better approach when LiveData
-        // (https://developer.android.com/topic/libraries/architecture/livedata)
-        // is coming from ViewModel class
-        // (https://developer.android.com/topic/libraries/architecture/viewmodel)
-        // which in turn takes it from Repository. See Android Jetpack architecture guide for details:
-        // https://developer.android.com/jetpack/docs/guide
-        // Also see concrete example: https://medium.com/@guendouz/room-livedata-and-recyclerview-d8e96fb31dfe
-        mListUpdateRunnable = object : Runnable {
-            override fun run() {
-                mService.users().enqueue(object : Callback<List<UserResponse>> {
-                    override fun onResponse(call: Call<List<UserResponse>>, response: Response<List<UserResponse>>) {
-                        Log.i(TAG, "Http request succeeded, response = " + response.body())
-                        var lines = ArrayList<UserListItem>()
-                        for (u in response.body()!!) {
-                            lines.add(UserListItem(u))
-                        }
-
-                        // Last seven days
-                        var recentEntries = lines.filter { item -> Date().time - item.date.time < 1000 * 60 * 60 * 24 * 7 }
-                        // More recent entries first
-                        mLiveData.postValue(recentEntries)
-                    }
-
-                    override fun onFailure(call: Call<List<UserResponse>>, t: Throwable) {
-                        Log.e(TAG, "Http request failed: $t")
-                    }
-                })
-                mHandler.removeCallbacks(this)
-                mHandler.postDelayed(this, 10000)
-            }
-        }
         recyclerView.adapter = adapter
 
         mStatusMenu = findViewById(R.id.menu_status)
@@ -142,7 +92,7 @@ class MainActivity : AppCompatActivity() {
 
     public override fun onPause() {
         super.onPause()
-        mHandler.removeCallbacks(mListUpdateRunnable)
+        mModel.pauseUpdates()
     }
 
     private fun setStatus(s: String) {
@@ -150,7 +100,7 @@ class MainActivity : AppCompatActivity() {
         val c = mService.profile(mSecurityToken, r)
         c.enqueue(object : Callback<UserResponse> {
             override fun onResponse(call: Call<UserResponse>, response: Response<UserResponse>) {
-                updateUserList()
+                mModel.updateAndResumeUpdates()
                 mStatusMenu.close(true)
             }
 
@@ -189,36 +139,11 @@ class MainActivity : AppCompatActivity() {
         mStatusMenu.iconToggleAnimatorSet = set
     }
 
-    private fun updateUserList() {
-        mListUpdateRunnable.run()
-    }
-
-    private fun onSearchQuery(filter: String) {
-        mFilterString = filter.toLowerCase()
-        rePostLiveData()
-    }
-
-    private fun filteredResults(lines: List<UserListItem>): List<UserListItem> {
-        return lines.filter { it ->
-                it.username.toLowerCase().contains(mFilterString) ||
-                it.location.toLowerCase().contains(mFilterString)
-        }
-    }
-
-    private fun sortedResults(lines: List<UserListItem>): List<UserListItem> {
-        return when (mSortBy) {
-            SortBy.FRESHNESS -> lines.sortedBy { item -> item.date }.reversed()
-            SortBy.LOCATION -> lines.sortedBy { item -> item.location }
-            SortBy.NAME -> lines.sortedBy { item -> item.username.toLowerCase() }
-            SortBy.STATUS -> lines.sortedBy { item -> item.status }
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         checkEverythingEnabled()
         this.startService(Intent(this, BeaconsScanner::class.java))
-        updateUserList()
+        mModel.updateAndResumeUpdates()
     }
 
     private fun checkEverythingEnabled() {
@@ -267,12 +192,12 @@ class MainActivity : AppCompatActivity() {
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
 
             override fun onQueryTextChange(query: String): Boolean {
-                onSearchQuery(query)
+                mModel.setFilter(query)
                 return true
             }
 
             override fun onQueryTextSubmit(query: String): Boolean {
-                onSearchQuery(query)
+                mModel.setFilter(query)
                 return true
             }
 
@@ -307,19 +232,12 @@ class MainActivity : AppCompatActivity() {
                     getString(R.string.sort_by_location),
                     getString(R.string.sort_by_status),
                     getString(R.string.sort_by_freshness)),
-                mSortBy.ordinal
+                mModel.getSortBy().ordinal
             ) { dialog: DialogInterface, which: Int ->
-                mSortBy = SortBy.values()[which]
-                rePostLiveData()
+                mModel.setSortBy(UserListViewModel.SortBy.values()[which])
                 dialog.dismiss()
             }
             .create()
             .show()
-    }
-
-    // Reposts to mLiveData so all filters/sorts are re-applied.
-    // Should be called when sorting/filtering options has changed.
-    private fun rePostLiveData() {
-        mLiveData.postValue(mLiveData.value)
     }
 }
