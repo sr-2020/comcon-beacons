@@ -196,7 +196,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onSearchQuery(filter: String) {
         mFilterString = filter.toLowerCase()
-        mLiveData.postValue(mLiveData.value)
+        rePostLiveData()
     }
 
     private fun filteredResults(lines: List<UserListItem>): List<UserListItem> {
@@ -281,34 +281,46 @@ class MainActivity : AppCompatActivity() {
 
         return true
     }
-    @SuppressLint("ApplySharedPref")
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
 
-        if (id == R.id.action_exit) {
-            val preferences = (application as ComConBeaconsApplication).getGlobalSharedPreferences()
-            preferences.edit().remove(getString(R.string.token_preference_key)).commit()
-            this.stopService(Intent(this, BeaconsScanner::class.java))
-            val intent = Intent(this, LoginActivity::class.java)
-            startActivity(intent)
-        } else if (id == R.id.action_sort) {
-            AlertDialog.Builder(this)
-                .setTitle(getString(R.string.sort_by))
-                .setSingleChoiceItems(
-                    arrayOf(
-                        getString(R.string.sort_by_name),
-                        getString(R.string.sort_by_location),
-                        getString(R.string.sort_by_status),
-                        getString(R.string.sort_by_freshness)),
-                    mSortBy.ordinal
-                ) { dialog: DialogInterface, which: Int ->
-                    mSortBy = SortBy.values()[which]
-                    mLiveData.postValue(mLiveData.value)
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_exit -> exit()
+            R.id.action_sort -> showSortByDialog()
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    @SuppressLint("ApplySharedPref")
+    private fun exit() {
+        val preferences = (application as ComConBeaconsApplication).getGlobalSharedPreferences()
+        preferences.edit().remove(getString(R.string.token_preference_key)).commit()
+        this.stopService(Intent(this, BeaconsScanner::class.java))
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun showSortByDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.sort_by))
+            .setSingleChoiceItems(
+                arrayOf(
+                    getString(R.string.sort_by_name),
+                    getString(R.string.sort_by_location),
+                    getString(R.string.sort_by_status),
+                    getString(R.string.sort_by_freshness)),
+                mSortBy.ordinal
+            ) { dialog: DialogInterface, which: Int ->
+                mSortBy = SortBy.values()[which]
+                rePostLiveData()
+                dialog.dismiss()
+            }
+            .create()
+            .show()
+    }
+
+    // Reposts to mLiveData so all filters/sorts are re-applied.
+    // Should be called when sorting/filtering options has changed.
+    private fun rePostLiveData() {
+        mLiveData.postValue(mLiveData.value)
     }
 }
