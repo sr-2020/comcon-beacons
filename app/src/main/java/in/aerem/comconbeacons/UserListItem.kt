@@ -30,7 +30,7 @@ class UserListItem {
         }
         val l = r.location;
         location = l?.label ?: "None"
-        date = getDate(r.location_updated_at)
+        date = getDate(r.updated_at)
     }
 
     private val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
