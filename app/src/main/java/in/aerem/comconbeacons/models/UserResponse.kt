@@ -5,7 +5,7 @@ class UserResponse (
     var router_id: Int,
     var beacon_id: Int,
     var name: String?,
-    var updated_at: String,
+    var location_updated_at: String,
     var location: Location?,
     var status: String
 ) {
