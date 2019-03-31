@@ -5,10 +5,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class UserListItem {
-    var id: Number
-    var username: String
-    var location: String
-    var date: Date
+    val id: Number
+    val username: String
+    val location: String
+    val date: Date
 
     enum class Status {
         ADVENTURE,
@@ -17,7 +17,7 @@ class UserListItem {
         UNKNOWN
     }
 
-    var status: Status
+    val status: Status
 
     constructor(r: UserResponse) {
         id = r.id
@@ -33,7 +33,7 @@ class UserListItem {
         date = getDate(r.updated_at)
     }
 
-    private var format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    private val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
     private fun valueOr(value: String?, defaultValue: String): String {
         return if (value == null || value.isEmpty()) defaultValue else value
