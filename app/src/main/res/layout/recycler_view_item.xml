@@ -49,4 +49,11 @@
           app:layout_constraintTop_toTopOf="@+id/statusIcon"
           app:layout_constraintEnd_toEndOf="parent"
           android:layout_marginEnd="8dp"/>
+  <ImageButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content" app:srcCompat="@drawable/ic_star_border_24dp"
+          android:id="@+id/favoriteButton" android:layout_marginBottom="4dp"
+          app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent"
+          android:layout_marginEnd="4dp"
+          android:background="@null"/>
 </android.support.constraint.ConstraintLayout>

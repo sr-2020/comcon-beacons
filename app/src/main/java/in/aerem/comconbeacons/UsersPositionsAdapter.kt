@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import org.ocpsoft.prettytime.PrettyTime
@@ -30,6 +31,7 @@ class UsersPositionsAdapter : RecyclerView.Adapter<UsersPositionsAdapter.ViewHol
         holder.mUsernameView.text = u.username
         holder.mLocationView.text = u.location
         holder.mTimeView.text = PrettyTime(Locale("ru")).format(u.date)
+        holder.mFavoriteButtonView.setOnClickListener { holder.mFavoriteButtonView.setImageResource(R.drawable.ic_star_24dp) }
     }
 
     override fun getItemCount(): Int {
@@ -41,5 +43,6 @@ class UsersPositionsAdapter : RecyclerView.Adapter<UsersPositionsAdapter.ViewHol
         var mUsernameView: TextView = itemView.findViewById(R.id.username)
         var mLocationView: TextView = itemView.findViewById(R.id.location)
         var mTimeView: TextView = itemView.findViewById(R.id.time)
+        var mFavoriteButtonView: ImageButton = itemView.findViewById(R.id.favoriteButton)
     }
 }
