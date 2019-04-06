@@ -36,7 +36,7 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
         Room.databaseBuilder(
             getApplication(),
             UsersDatabase::class.java, "users-db"
-        ).build().usersDao())
+        ).fallbackToDestructiveMigration().build().usersDao())
 
     private val mUsersList = mUsersRepository.getUsers()
 
@@ -68,6 +68,7 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
         resortAndRefilter()
     }
 
+    fun setFavorite(id: Int, favorite: Boolean) = mUsersRepository.setIsFavorite(id, favorite)
     fun pauseUpdates() = mUsersRepository.pauseUpdates()
     fun updateAndResumeUpdates() = mUsersRepository.updateAndResumeUpdates()
 

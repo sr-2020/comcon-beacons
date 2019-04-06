@@ -1,5 +1,6 @@
 package `in`.aerem.comconbeacons
 
+import `in`.aerem.comconbeacons.models.UserListViewModel
 import `in`.aerem.comconbeacons.models.statusToResourceId
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -11,7 +12,7 @@ import android.widget.TextView
 import org.ocpsoft.prettytime.PrettyTime
 import java.util.*
 
-class UsersPositionsAdapter : RecyclerView.Adapter<UsersPositionsAdapter.ViewHolder>() {
+class UsersPositionsAdapter(private val mViewModel: UserListViewModel) : RecyclerView.Adapter<UsersPositionsAdapter.ViewHolder>() {
     private var mDataset: List<UserListItem> = ArrayList()
 
     fun setData(newData: List<UserListItem>) {
@@ -31,7 +32,8 @@ class UsersPositionsAdapter : RecyclerView.Adapter<UsersPositionsAdapter.ViewHol
         holder.mUsernameView.text = u.username
         holder.mLocationView.text = u.location
         holder.mTimeView.text = PrettyTime(Locale("ru")).format(u.date)
-        holder.mFavoriteButtonView.setOnClickListener { holder.mFavoriteButtonView.setImageResource(R.drawable.ic_star_24dp) }
+        holder.mFavoriteButtonView.setImageResource(if (u.favorite) R.drawable.ic_star_24dp else R.drawable.ic_star_border_24dp)
+        holder.mFavoriteButtonView.setOnClickListener { mViewModel.setFavorite(u.id, !u.favorite) }
     }
 
     override fun getItemCount(): Int {

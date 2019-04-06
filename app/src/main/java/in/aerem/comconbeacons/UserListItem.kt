@@ -7,8 +7,6 @@ import android.arch.persistence.room.TypeConverter
 import java.text.SimpleDateFormat
 import java.util.*
 
-
-
 enum class Status {
     ADVENTURE,
     FREE,
@@ -17,13 +15,29 @@ enum class Status {
 }
 
 @Entity
-data class UserListItem(
+data class UserInfo(
     @PrimaryKey
     val id: Int,
     val username: String,
     val location: String,
     val date: Date,
     val status: Status
+)
+
+@Entity
+data class UserIsFavorite(
+    @PrimaryKey
+    val id: Int,
+    val favorite: Boolean = false
+)
+
+data class UserListItem(
+    val id: Int,
+    val username: String,
+    val location: String,
+    val date: Date,
+    val status: Status,
+    val favorite: Boolean = false
 )
 
 class Converters {
@@ -53,7 +67,7 @@ class Converters {
     }
 }
 
-fun fromResponse(r: UserResponse): UserListItem {
+fun fromResponse(r: UserResponse): UserInfo {
     val  status = when (r.status) {
         "adventure" -> Status.ADVENTURE
         "free" -> Status.FREE
@@ -67,5 +81,5 @@ fun fromResponse(r: UserResponse): UserListItem {
     format.timeZone = TimeZone.getTimeZone("Europe/Moscow")
     val date = format.parse(r.updated_at)
 
-    return UserListItem(r.id, r.name ?: "Anonymous", location, date, status)
+    return UserInfo(r.id, r.name ?: "Anonymous", location, date, status)
 }

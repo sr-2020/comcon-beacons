@@ -65,8 +65,8 @@ class MainActivity : AppCompatActivity() {
         recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        val adapter = UsersPositionsAdapter()
         mModel = ViewModelProviders.of(this).get(UserListViewModel::class.java)
+        val adapter = UsersPositionsAdapter(mModel)
         mModel.getUsersList().observe(this,
             Observer { data: List<UserListItem>? -> if (data != null) adapter.setData(data) })
 

@@ -19,7 +19,7 @@ class UsersRepository(private val mService: PositionsWebService, private val mUs
             mService.users().enqueue(object : Callback<List<UserResponse>> {
                 override fun onResponse(call: Call<List<UserResponse>>, response: Response<List<UserResponse>>) {
                     Log.i(TAG, "Http request succeeded, response = " + response.body())
-                    var lines = ArrayList<UserListItem>()
+                    var lines = ArrayList<UserInfo>()
                     for (u in response.body()!!) {
                         lines.add(fromResponse(u))
                     }
@@ -27,7 +27,7 @@ class UsersRepository(private val mService: PositionsWebService, private val mUs
                     // Last seven days
                     var recentEntries = lines.filter { item -> Date().time - item.date.time < 1000 * 60 * 60 * 24 * 7 }
                     doAsync {
-                        mUsersDao.saveAll(recentEntries)
+                        mUsersDao.saveUsers(recentEntries)
                     }
                 }
 
@@ -50,5 +50,11 @@ class UsersRepository(private val mService: PositionsWebService, private val mUs
 
     fun updateAndResumeUpdates() {
         mListUpdateRunnable.run()
+    }
+
+    fun setIsFavorite(id: Int, isFavorite: Boolean) {
+        doAsync {
+            mUsersDao.saveFavorite(UserIsFavorite(id, isFavorite))
+        }
     }
 }

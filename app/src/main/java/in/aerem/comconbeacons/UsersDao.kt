@@ -10,8 +10,13 @@ import android.arch.persistence.room.Query
 @Dao
 interface UsersDao {
     @Insert(onConflict = REPLACE)
-    fun saveAll(users: List<UserListItem>)
+    fun saveUsers(users: List<UserInfo>)
 
-    @Query("SELECT * FROM userListItem")
+    @Insert(onConflict = REPLACE)
+    fun saveFavorite(favorite: UserIsFavorite)
+
+    @Query(
+        "SELECT userInfo.id, userInfo.username, userInfo.location, userInfo.date, userInfo.status, userIsFavorite.favorite " +
+                "FROM userInfo LEFT JOIN userIsFavorite ON userInfo.id = userIsFavorite.id")
     fun load(): LiveData<List<UserListItem>>
 }
