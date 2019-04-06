@@ -68,12 +68,6 @@ class Converters {
 }
 
 fun fromResponse(r: UserResponse): UserInfo {
-    val  status = when (r.status) {
-        "adventure" -> Status.ADVENTURE
-        "free" -> Status.FREE
-        "busy" -> Status.BUSY
-        else -> Status.UNKNOWN
-    }
     val l = r.location;
     val location = l?.label ?: "None"
 
@@ -81,5 +75,5 @@ fun fromResponse(r: UserResponse): UserInfo {
     format.timeZone = TimeZone.getTimeZone("Europe/Moscow")
     val date = format.parse(r.updated_at)
 
-    return UserInfo(r.id, r.name ?: "Anonymous", location, date, status)
+    return UserInfo(r.id, r.name ?: "Anonymous", location, date, Converters().fromString(r.status))
 }
