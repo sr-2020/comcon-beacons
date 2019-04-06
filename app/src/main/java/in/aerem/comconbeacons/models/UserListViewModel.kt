@@ -38,15 +38,16 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
             UsersDatabase::class.java, "users-db"
         ).build().usersDao())
 
+    private val mUsersList = mUsersRepository.getUsers()
+
     private val mLiveDataMerger = MediatorLiveData<List<UserListItem>>()
     private val mLiveDataSortingFilteringChanged = MutableLiveData<Number>()
 
     init {
-        mLiveDataMerger.addSource(mUsersRepository.getUsers())
+        mLiveDataMerger.addSource(mUsersList)
             { item -> mLiveDataMerger.value = sortAndFilterResults(item)}
         mLiveDataMerger.addSource(mLiveDataSortingFilteringChanged)
-            { _ -> if (mLiveDataMerger.value != null)
-                mLiveDataMerger.value = sortAndFilterResults(mLiveDataMerger.value)}
+            { mLiveDataMerger.value = sortAndFilterResults(mUsersList.value) }
     }
 
     fun getUsersList(): LiveData<List<UserListItem>?> {
@@ -92,6 +93,7 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun resortAndRefilter() {
+        // Hack to trigger mLiveDataMerger update, see init { ... }
         mLiveDataSortingFilteringChanged.value = 0
     }
 }
