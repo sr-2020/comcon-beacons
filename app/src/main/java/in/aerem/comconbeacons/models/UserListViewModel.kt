@@ -86,10 +86,10 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
 
     private fun sortedResults(lines: List<UserListItem>): List<UserListItem> {
         return when (mSortBy) {
-            SortBy.FRESHNESS -> lines.sortedBy { item -> item.date }.reversed()
-            SortBy.LOCATION -> lines.sortedBy { item -> item.location }
-            SortBy.NAME -> lines.sortedBy { item -> item.username.toLowerCase() }
-            SortBy.STATUS -> lines.sortedBy { item -> item.status }
+            SortBy.FRESHNESS -> lines.sortedWith(compareBy({item -> item.favorite }, { item -> item.date })).reversed()
+            SortBy.LOCATION -> lines.sortedWith(compareBy({item -> !item.favorite }, { item -> item.location }))
+            SortBy.NAME -> lines.sortedWith(compareBy({item -> !item.favorite }, { item -> item.username.toLowerCase() }))
+            SortBy.STATUS -> lines.sortedWith(compareBy({item -> !item.favorite }, { item -> item.status }))
         }
     }
 
