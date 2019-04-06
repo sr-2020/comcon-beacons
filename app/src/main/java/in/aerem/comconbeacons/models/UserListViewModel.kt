@@ -2,28 +2,21 @@ package `in`.aerem.comconbeacons.models
 
 import `in`.aerem.comconbeacons.PositionsWebService
 import `in`.aerem.comconbeacons.UserListItem
+import `in`.aerem.comconbeacons.UsersRepository
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Transformations
-import android.os.Handler
-import android.util.Log
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.*
+
 
 // TODO: Consider adding Repository/Room for local caching
 // See Android Jetpack architecture guide for details:
 // https://developer.android.com/jetpack/docs/guide
 // Also see concrete example: https://medium.com/@guendouz/room-livedata-and-recyclerview-d8e96fb31dfe
 class UserListViewModel(application: Application) : AndroidViewModel(application) {
-    private val TAG = "ComConBeacons"
-    private val mRawUserList = MutableLiveData<List<UserListItem>>()
-    private val mUserList = Transformations.map(mRawUserList) { item -> sortAndFilterResults(item) }!!
     private var mFilterString = ""
 
     enum class SortBy {
@@ -34,51 +27,29 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
     }
     private var mSortBy: SortBy = SortBy.FRESHNESS
 
-    private val mService: PositionsWebService = Retrofit.Builder()
-        .baseUrl(getBackendUrl(getApplication(), getApplication()))
-        .addConverterFactory(GsonConverterFactory.create())
-        .build().create(PositionsWebService::class.java)
-    private val mHandler = Handler()
-    private val mListUpdateRunnable = object : Runnable {
-        override fun run() {
-            mService.users().enqueue(object : Callback<List<UserResponse>> {
-                override fun onResponse(call: Call<List<UserResponse>>, response: Response<List<UserResponse>>) {
-                    Log.i(TAG, "Http request succeeded, response = " + response.body())
-                    var lines = ArrayList<UserListItem>()
-                    for (u in response.body()!!) {
-                        lines.add(UserListItem(u))
-                    }
+    private val mUsersRepository = UsersRepository(Retrofit.Builder()
+            .baseUrl(getBackendUrl(getApplication(), getApplication()))
+            .addConverterFactory(GsonConverterFactory.create())
+            .build().create(PositionsWebService::class.java))
 
-                    // Last seven days
-                    var recentEntries = lines.filter { item -> Date().time - item.date.time < 1000 * 60 * 60 * 24 * 7 }
-                    // More recent entries first
-                    mRawUserList.postValue(recentEntries)
-                }
+    private val mLiveDataMerger = MediatorLiveData<List<UserListItem>>()
+    private val mLiveDataSortingFilteringChanged = MutableLiveData<Number>()
 
-                override fun onFailure(call: Call<List<UserResponse>>, t: Throwable) {
-                    Log.e(TAG, "Http request failed: $t")
-                }
-            })
-            mHandler.removeCallbacks(this)
-            mHandler.postDelayed(this, 10000)
-        }
+    init {
+        mLiveDataMerger.addSource(mUsersRepository.getUsers())
+            { item -> mLiveDataMerger.value = sortAndFilterResults(item)}
+        mLiveDataMerger.addSource(mLiveDataSortingFilteringChanged)
+            { _ -> if (mLiveDataMerger.value != null)
+                mLiveDataMerger.value = sortAndFilterResults(mLiveDataMerger.value)}
     }
 
     fun getUsersList(): LiveData<List<UserListItem>?> {
-        return mUserList
+        return mLiveDataMerger
     }
 
     fun setFilter(filter: String) {
         mFilterString = filter;
-        rePostLiveData()
-    }
-
-    fun pauseUpdates() {
-        mHandler.removeCallbacks(mListUpdateRunnable)
-    }
-
-    fun updateAndResumeUpdates() {
-        mListUpdateRunnable.run()
+        resortAndRefilter()
     }
 
     fun getSortBy(): SortBy {
@@ -87,8 +58,11 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
 
     fun setSortBy(sortBy: SortBy) {
         mSortBy = sortBy
-        rePostLiveData()
+        resortAndRefilter()
     }
+
+    fun pauseUpdates() = mUsersRepository.pauseUpdates()
+    fun updateAndResumeUpdates() = mUsersRepository.updateAndResumeUpdates()
 
     private fun sortAndFilterResults(lines: List<UserListItem>?): List<UserListItem>? {
         if (lines == null) return null
@@ -111,7 +85,7 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private fun rePostLiveData() {
-        mRawUserList.postValue(mRawUserList.value)
+    private fun resortAndRefilter() {
+        mLiveDataSortingFilteringChanged.value = 0
     }
 }
