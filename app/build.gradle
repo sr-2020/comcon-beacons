@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 28
@@ -38,7 +39,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.bugfender.sdk:android:1.+'
     implementation "android.arch.lifecycle:extensions:1.1.1"
-    annotationProcessor "android.arch.lifecycle:compiler:1.1.1"
+    kapt  "android.arch.lifecycle:compiler:1.1.1"
+    implementation "android.arch.persistence.room:runtime:1.0.0"
+    kapt  "android.arch.persistence.room:compiler:1.0.0"
+    implementation 'org.jetbrains.anko:anko-common:0.9'
 }
 repositories {
     mavenCentral()

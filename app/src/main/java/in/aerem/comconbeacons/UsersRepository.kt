@@ -2,17 +2,17 @@ package `in`.aerem.comconbeacons
 
 import `in`.aerem.comconbeacons.models.UserResponse
 import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
 import android.os.Handler
 import android.util.Log
+import org.jetbrains.anko.doAsync
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.*
 
-class UsersRepository(val mService: PositionsWebService) {
+
+class UsersRepository(private val mService: PositionsWebService, private val mUsersDao:  UsersDao) {
     private val TAG = "ComConBeacons"
-    private val mUserList = MutableLiveData<List<UserListItem>>()
     private val mHandler = Handler()
     private val mListUpdateRunnable = object : Runnable {
         override fun run() {
@@ -21,13 +21,14 @@ class UsersRepository(val mService: PositionsWebService) {
                     Log.i(TAG, "Http request succeeded, response = " + response.body())
                     var lines = ArrayList<UserListItem>()
                     for (u in response.body()!!) {
-                        lines.add(UserListItem(u))
+                        lines.add(fromResponse(u))
                     }
 
                     // Last seven days
                     var recentEntries = lines.filter { item -> Date().time - item.date.time < 1000 * 60 * 60 * 24 * 7 }
-                    // More recent entries first
-                    mUserList.postValue(recentEntries)
+                    doAsync {
+                        mUsersDao.saveAll(recentEntries)
+                    }
                 }
 
                 override fun onFailure(call: Call<List<UserResponse>>, t: Throwable) {
@@ -40,7 +41,7 @@ class UsersRepository(val mService: PositionsWebService) {
     }
 
     fun getUsers(): LiveData<List<UserListItem>> {
-        return mUserList
+        return mUsersDao.load()
     }
 
     fun pauseUpdates() {

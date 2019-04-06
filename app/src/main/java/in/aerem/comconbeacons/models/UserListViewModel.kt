@@ -2,12 +2,14 @@ package `in`.aerem.comconbeacons.models
 
 import `in`.aerem.comconbeacons.PositionsWebService
 import `in`.aerem.comconbeacons.UserListItem
+import `in`.aerem.comconbeacons.UsersDatabase
 import `in`.aerem.comconbeacons.UsersRepository
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.MutableLiveData
+import android.arch.persistence.room.Room
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -28,9 +30,13 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
     private var mSortBy: SortBy = SortBy.FRESHNESS
 
     private val mUsersRepository = UsersRepository(Retrofit.Builder()
-            .baseUrl(getBackendUrl(getApplication(), getApplication()))
-            .addConverterFactory(GsonConverterFactory.create())
-            .build().create(PositionsWebService::class.java))
+        .baseUrl(getBackendUrl(getApplication(), getApplication()))
+        .addConverterFactory(GsonConverterFactory.create())
+        .build().create(PositionsWebService::class.java),
+        Room.databaseBuilder(
+            getApplication(),
+            UsersDatabase::class.java, "users-db"
+        ).build().usersDao())
 
     private val mLiveDataMerger = MediatorLiveData<List<UserListItem>>()
     private val mLiveDataSortingFilteringChanged = MutableLiveData<Number>()

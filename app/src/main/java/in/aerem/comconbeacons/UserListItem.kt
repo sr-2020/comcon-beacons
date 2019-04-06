@@ -1,46 +1,71 @@
 package `in`.aerem.comconbeacons
 
 import `in`.aerem.comconbeacons.models.UserResponse
+import android.arch.persistence.room.Entity
+import android.arch.persistence.room.PrimaryKey
+import android.arch.persistence.room.TypeConverter
 import java.text.SimpleDateFormat
 import java.util.*
 
-class UserListItem {
-    val id: Number
-    val username: String
-    val location: String
-    val date: Date
 
-    enum class Status {
-        ADVENTURE,
-        FREE,
-        BUSY,
-        UNKNOWN
+
+enum class Status {
+    ADVENTURE,
+    FREE,
+    BUSY,
+    UNKNOWN
+}
+
+@Entity
+data class UserListItem(
+    @PrimaryKey
+    val id: Int,
+    val username: String,
+    val location: String,
+    val date: Date,
+    val status: Status
+)
+
+class Converters {
+    @TypeConverter
+    fun fromTimestamp(value: Long): Date {
+        return Date(value)
     }
 
-    val status: Status
+    @TypeConverter
+    fun dateToTimestamp(date: Date): Long {
+        return date.time
+    }
 
-    constructor(r: UserResponse) {
-        id = r.id
-        username = valueOr(r.name, "Anonymous")
-        status = when (r.status) {
+    @TypeConverter
+    fun fromString(value: String): Status {
+        return when (value) {
             "adventure" -> Status.ADVENTURE
             "free" -> Status.FREE
             "busy" -> Status.BUSY
             else -> Status.UNKNOWN
         }
-        val l = r.location;
-        location = l?.label ?: "None"
-        date = getDate(r.updated_at)
     }
 
-    private val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-
-    private fun valueOr(value: String?, defaultValue: String): String {
-        return if (value == null || value.isEmpty()) defaultValue else value
+    @TypeConverter
+    fun toString(s: Status): String {
+        return s.toString().toLowerCase()
     }
+}
 
-    private fun getDate(rawDate: String): Date {
-        format.timeZone = TimeZone.getTimeZone("Europe/Moscow")
-        return format.parse(rawDate)
+fun fromResponse(r: UserResponse): UserListItem {
+    val  status = when (r.status) {
+        "adventure" -> Status.ADVENTURE
+        "free" -> Status.FREE
+        "busy" -> Status.BUSY
+        else -> Status.UNKNOWN
     }
+    val l = r.location;
+    val location = l?.label ?: "None"
+
+    val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    format.timeZone = TimeZone.getTimeZone("Europe/Moscow")
+    val date = format.parse(r.updated_at)
+
+    return UserListItem(r.id, r.name ?: "Anonymous", location, date, status)
 }
